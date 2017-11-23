@@ -1,0 +1,947 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+ <title>Рок Музыка: Радио онлайн слушать бесплатно на 101.ru</title>
+ <link rel="canonical" href="http://101.ru/radio-group/group/8">
+ <meta content="IE=EmulateIE7,IE=edge" http-equiv="X-UA-Compatible">
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+ <meta name="description" content="101.ru: Вы можете слушать любимую радиостанцию в онлайн режиме из дома, с работы, в дороге всего лишь запустив наш радио-плеер в любом браузере. Присоединяйтесь к сообществу любителей хорошей музыки на 101.ru!">
+ <meta name="keywords" content="слушать радио, слушать онлайн радио, слушать радио онлайн, слушать интернет радио, слушать онлайн музыку, слушать музыку">
+ <meta property="og:site_name" content="101.ru">
+ <meta property="fb:app_id" content="1522280828085609">
+ <meta property="og:url" content="http://101.ru/radio-group/group/8">
+ <meta property="og:type" content="article">
+ <meta property="og:title" content="Рок Музыка: Радио онлайн слушать бесплатно на 101.ru">
+ <meta property="og:description" content="Вы можете слушать любимую радиостанцию в онлайн режиме из дома, с работы, в дороге всего лишь запустив наш радио-плеер в любом браузере. Присоединяйтесь к сообществу любителей хорошей музыки на 101.ru!">
+ <meta property="og:image" content="http://101.ru/proxy/design/images/radio/topgroup-8.jpg?w=800&h=380&pos=top-left&t=1458565018">
+ <meta itemprop="image" content="http://101.ru/proxy/design/images/radio/topgroup-8.jpg?w=800&h=380&pos=top-left&t=1458565018">
+ <meta itemprop="url" content="http://101.ru/radio-group/group/8">
+  <link rel="image_src" href="">
+ <link rel="icon" href="/design/images/main-design/favicon.ico" type="image/png">
+ 
+
+<!--<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+
+
+
+
+<script src="https://yastatic.net/pcode/adfox/loader.js"></script>
+
+<script type="text/javascript">
+var ATInternetKeyUserID = '';
+</script>
+
+ <script>
+  var mobiledevice = false; 
+ </script>
+ <!--[if lt IE 9]>
+ <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+ <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+<![endif]-->
+
+<script type="text/javascript" src="//tag.aticdn.net/578493/smarttag.js"></script>
+
+
+
+<!--script>
+$(function() {
+    
+        mplayer.setTrigger({
+            selector: ".player-control",
+            callback: {
+                play : function () {
+                    try {
+                        if (this.volume == 0) {
+                            this.volume = 0.2;
+                            slider.setVolume(20);
+                            slider2.setVolume(20);
+                            $(".icon-volume").removeClass("icon-volume-off");
+                        }
+                    }catch(e){
+                        MP.log(e.message);
+                    }
+                }
+            }
+        });
+
+})
+</script-->
+
+<script>
+        window.isDocumentReadyFlag = false;
+        window.isDocumentReadyCallbacks = [];
+        function isDocumentReadyFunc() {
+            if (window.isDocumentReadyFlag == false) {
+                try {
+                    window.isDocumentReadyFlag = true;
+                    document.removeEventListener( "DOMContentLoaded", isDocumentReadyFunc, false );
+                    window.removeEventListener( "load", isDocumentReadyFunc, false );
+
+                    for (var i = 0; 0 != isDocumentReadyCallbacks.length; i) {
+                        isDocumentReadyCallbacks[i]();
+                        isDocumentReadyCallbacks.shift();
+                    }
+                } catch (e){
+                    console.log(e.message);
+                }
+            }
+        }
+        function isDocReady(callback) {
+            try {
+                if (window.isDocumentReadyFlag == true) {
+                    callback();
+                } else {
+                    isDocumentReadyCallbacks.push(callback);
+                    if ( document.readyState === "complete" ) {
+                        isDocumentReadyFunc();
+                    } else {
+                        document.addEventListener( "DOMContentLoaded", isDocumentReadyFunc, false );
+                        window.addEventListener( "load", isDocumentReadyFunc, false );
+                    }
+                }
+
+            } catch (e){
+                console.log(e.message);
+            }
+        }
+    </script>
+
+
+<script>
+
+
+isDocReady(function() {
+    
+    window.recommend = new Recommend({
+    url: "http://r101.vuuid.com/event"
+});
+
+    
+        mplayer.setTrigger({
+            selector: ".player-control",
+            callback: {
+                play : function () {
+                    try {
+                        if (window.stalled_track != true) {
+                             recommend.handleEvent("play", this);
+                             if (typeof window.slidersVolumeChanged == "undefined" && this.volume == 0) {
+                                this.volume = 0.2;
+                                slider.setVolume(20);
+                                slider2.setVolume(20);
+                                $(".icon-volume").removeClass("icon-volume-off");
+                            }
+                        }
+                       
+                    }catch(e){
+                        MP.log(e.message);
+                    }
+                },
+                stalled : function () {
+                    try {
+                        clearTimeout(window.stalled_timeout);
+                        window.stalled_track = true;
+                        window.stalled_timeout = setTimeout(function(){
+                            window.stalled_track = false;
+                        }, 30000);
+                    }catch(e){
+                        MP.log(e.message);
+                    }
+                },
+                timeupdate : function () {
+                    try {
+                     if (!window.sent_timeupdate_failed) {
+                        if (!window.sent_timeupdate && !window.stalled_track) {
+                            recommend.handleEvent("playing", this);
+                            clearTimeout(window.stalled_timeupdate);
+                            window.sent_timeupdate = true;
+                            window.stalled_timeupdate = setTimeout(function(){
+                                window.sent_timeupdate = false;
+                            }, 60000);
+                        }
+                        window.sent_timeupdate_failed = true;
+
+                        clearTimeout(window.sent_timeout_failed);
+                        window.sent_timeout_failed = setTimeout(function(){
+                            window.sent_timeupdate_failed = false;
+                        }, 5000);
+                    }
+                        
+                        
+                    }catch(e){
+                        MP.log(e.message);
+                    }
+                },
+                
+                pause: function () {
+                    recommend.handleEvent("stop", this);
+                }
+            }
+        });
+        
+        
+        $(document).on("changeTrackOnAir", function(event, data){
+           recommendCacheTracks.currentTrack = data;
+           if (mplayer && mplayer.players["footer-player"] && !mplayer.players["footer-player"].paused && window.stalled_track != true) {
+                setTimeout(function(){
+                    recommend.handleEvent("play", mplayer.players["footer-player"]);
+                }, 6000);
+           }
+        });
+
+})
+</script>
+
+
+<script>
+
+function isInt(value) {
+    return !isNaN(value) &&
+        parseInt(Number(value)) == value &&
+        !isNaN(parseInt(value, 10));
+}
+
+function isValidVolume(value) {
+    return !isNaN(value) &&
+        parseFloat(Number(value)) == value && !isNaN(parseFloat(value, 10));
+}
+
+        isDocReady(function() {
+                
+                
+            
+                window.slider = new SoundSlider({sliderElem: "#top-channel-block .sliderStrip", thumb:".sliderThumb", progress: ".sliderBack"});
+            
+                slider.setHandlers();
+                
+                slider.setVolumeCallback = function(percent) {
+                    window.slidersVolumeChanged = true;
+                }
+            
+                SoundSlider.setMuteUnmuteController();
+                
+                SoundSlider.setMuteController = function(volume) {
+                    if (typeof slider != "undefined") slider.setVolume(0);
+                    if (typeof slider2 != "undefined") slider2.setVolume(0);
+                    
+                }
+                SoundSlider.setUnmuteController = function(volume) {
+                    if (typeof slider != "undefined") slider.setVolume(volume);
+                    if (typeof slider2 != "undefined") slider2.setVolume(volume);
+                }      
+                
+                window.slider2 = new SoundSlider({sliderElem: "#footer-block .sliderStrip", thumb:".sliderThumb", progress: ".sliderBack"});
+            
+                slider2.setHandlers();
+               
+                 slider2.setVolumeCallback = function(percent) {
+                     window.slidersVolumeChanged = true;
+                    var cur_vol = percent;
+                    
+                    if (typeof recommend != "undefined") recommend.volumeChange(percent);
+
+                    if (isInt(parseInt(cur_vol))) {
+                         var audios = $("audio");
+            
+                        audios.each(function(index, element) {
+                            if (!element.paused) {
+                                element.volume = percent/100;
+                            }
+                        }) 
+                        
+                    }
+                }
+                
+                setTimeout(function(){jQuery('#station-big-btn').click();},1000);
+                
+                
+               
+                function isPlaying(audelem) { return !audelem.paused; }
+
+                
+            
+            });
+</script>
+
+
+<link rel="stylesheet" href="http://cdn1.101.ru/design/include/min/main.min.css?v=1510865059" type="text/css">
+</head>
+<body id="site">
+
+<div id="counters">
+
+
+
+
+<!-- tns-counter.ru --> 
+<script language="JavaScript" type="text/javascript"> 
+
+	var img = new Image();
+	img.src = 'https://www.tns-counter.ru/V13a***R>' + document.referrer.replace(/\*/g,'%2a') + '*vkpm_ru/ru/UTF-8/tmsec=101_total/' + Math.round(Math.random() * 1000000000);
+
+</script> 
+<noscript> 
+	<img src="https://www.tns-counter.ru/V13a****vkpm_ru/ru/UTF-8/tmsec=101_total/" width="1" height="1" alt="" />
+</noscript> 
+<!--/ tns-counter.ru -->
+
+<!-- Yandex.Metrika counter -->
+
+<script type="text/javascript">
+    (function (d, w, c) {
+        (w[c] = w[c] || []).push(function() {
+            try {
+                w.yaCounter6041479 = new Ya.Metrika({
+                    id:6041479,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true,
+                    webvisor:true
+                });
+            } catch(e) { }
+        });
+
+        var n = d.getElementsByTagName("script")[0],
+            s = d.createElement("script"),
+            f = function () { n.parentNode.insertBefore(s, n); };
+        s.type = "text/javascript";
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/watch.js";
+
+        if (w.opera == "[object Opera]") {
+            d.addEventListener("DOMContentLoaded", f, false);
+        } else { f(); }
+    })(document, window, "yandex_metrika_callbacks");
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/6041479" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+
+
+
+<script src="//mc.yandex.ru/metrika/watch.js" type="text/javascript" defer="defer"></script>
+<!-- /Yandex.Metrika counter -->
+
+<!-- Yandex.Metrika counter GPMH -->
+<script type="text/javascript">
+    (function (d, w, c) {
+        (w[c] = w[c] || []).push(function() {
+            try {
+                w.yaCounter42355849 = new Ya.Metrika({
+                    id:42355849,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true,
+                    webvisor:true,
+                    ecommerce:"dataLayer"
+                });
+            } catch(e) { }
+        });
+
+        var n = d.getElementsByTagName("script")[0],
+            s = d.createElement("script"),
+            f = function () { n.parentNode.insertBefore(s, n); };
+        s.type = "text/javascript";
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/watch.js";
+
+        if (w.opera == "[object Opera]") {
+            d.addEventListener("DOMContentLoaded", f, false);
+        } else { f(); }
+    })(document, window, "yandex_metrika_callbacks");
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/42355849" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter GPMH -->
+
+<script type="text/javascript" language="JavaScript"><!--
+LI_title="Рок Музыка: Радио онлайн слушать бесплатно на 101.ru";
+//--></script>
+
+
+<!--LiveInternet counter--><script type="text/javascript">
+new Image().src = "//counter.yadro.ru/hit;Gazprom-Media?r"+
+escape(document.referrer)+((typeof(screen)=="undefined")?"":
+";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
+screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
+";h"+escape(document.title.substring(0,80))+
+";"+Math.random();</script><!--/LiveInternet-->
+
+
+
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-12962214-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+  
+  new Image().src = "//counter.yadro.ru/hit?r" + escape(document.referrer) + ((typeof(screen)=="undefined")?"" : ";s"+screen.width+"*"+screen.height+"*" + (screen.colorDepth?screen.colorDepth:screen.pixelDepth)) + ";u"+escape(document.URL) +  ";" +Math.random();
+
+</script>
+
+<!-- Rating@Mail.ru counter -->
+<script type="text/javascript">
+var _tmr = window._tmr || (window._tmr = []);
+_tmr.push({id: "5795", type: "pageView", start: (new Date()).getTime()});
+(function (d, w, id) {
+  if (d.getElementById(id)) return;
+  var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+  ts.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//top-fwz1.mail.ru/js/code.js";
+  var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+  if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+})(document, window, "topmailru-code");
+</script><noscript><div style="position:absolute;left:-10000px;">
+<img src="//top-fwz1.mail.ru/counter?id=5795;js=na" style="border:0;" height="1" width="1" alt="Рейтинг@Mail.ru" />
+</div></noscript>
+<!-- //Rating@Mail.ru counter -->
+
+
+
+
+</div><div id="outdated"></div>
+
+<div id="layout">
+<div id="menuhelper2"></div>
+<div data-firstlevel="1" data-secondlevel="1" id="menuhelper"></div>
+<div id="hd101" class="bw-load block1"><style>#hd101 {height: 300px;}</style><img src="/design/images/radio/topgroup-8.jpg" title="Рок Музыка"></div>
+
+<div class="content">
+ <div class="central">
+  
+    
+
+<div class="top-block search right">
+<form action="" method="GET" id="search_form" class="search-form">
+<input type="hidden" name="an" value="prof-search">
+<input class="sinput r4 h3 trans-all-fast" name="search" type="text" placeholder="Найти станцию...">
+<a href="#" class="h1 icon icon-search trans-all-fast" type="submit" value="" title="Найти станцию" onclick="jQuery('.search-form').submit(); return false;"></a>
+</form>
+</div>
+
+<h1>Рок Музыка</h1>
+
+<ul class="full list caps menu h4 dotted">
+<li class="h3 pr"><b>Профессиональное радио:</b></li>
+<li><a href="/radio-top" >Лучшие станции</a></li>
+<li>
+ <ins class="icon"></ins><a href="/radio-group/group/1">Эфирное Радио</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/20">Коммерческое Радио</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/2">Танцевальное Радио</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/4">Электроника</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/9">Широкий Формат</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/5">Фоновая Музыка</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/15">Поп Музыка</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/8" class="active">Рок Музыка</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/6">Русская Музыка</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/17">Джаз / Блюз</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/16">Рэп / Хип-Хоп</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/3">Юмор</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/10">Для Детей</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/18">Ретро</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/12">Золотая Коллекция</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/7">World Music</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/19">Этническая Музыка</a>
+</li><li>
+ <ins class="icon"></ins><a href="/radio-group/group/11">Классика</a>
+</li></ul>
+
+<div class="full">        <style>
+#adfox_149846546071022543 {display:none}
+</style>
+<!--AdFox START-->
+<!--Площадка: ГПМ-тех / 101.ru / In-Feed баннер-->
+<!--Категория: <не задана>-->
+<!--Тип баннера: ГПМ-тех In-Feed-->
+<div id="adfox_149846546071022543" class="adfox970"></div>
+<script>
+try {
+    window.Ya.adfoxCode.create({
+        ownerId: 220463,
+        containerId: 'adfox_149846546071022543',
+
+	onLoad: function() {
+setTimeout(function(){$("#adfox_149846546071022543").show();}, 6000);
+	},
+		    onRender: function() {
+$("#adfox_149846546071022543").show();
+	},
+        params: {
+            p1: 'bxoco',
+            p2: 'fqin',
+        }
+    });
+}catch(e){}
+</script>        <img src="/api/outreach/stat/505/56/spacer.png" border="0" width="1" height="1" style="position:absolute; top:0; left:0;">
+</div>
+
+<div class="line_30"></div>
+
+<ul class="list list-channels">
+ <li>
+  <a href="/radio/channel/280" class="noajax" data-tooltip-block="#topchan280">
+   <div class="cover logo" style="background-color: #a6a1a1">
+    <img src="http://cdn2.101.ru/vardata/modules/channel/dynamics/pro/0/280.png" alt="Музыка футбола">
+   </div>
+   <div class="h3 caps htitle">Музыка футбола</div>
+  </a>
+<div class="tooltip-block" id="topchan280">
+ <div class="h4"><ins></ins>13</div>
+<div class="h5"><ins></ins>Bang On The Piano<br><b>MCMANUS, Jack</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/69" class="noajax" data-tooltip-block="#topchan69">
+   <div class="cover logo" style="background-color: #e0290d">
+    <img src="http://cdn2.101.ru/vardata/modules/channel/dynamics/pro/0/69.png" alt="Rock">
+   </div>
+   <div class="h3 caps htitle">Rock</div>
+  </a>
+<div class="tooltip-block" id="topchan69">
+ <div class="h4"><ins></ins>89</div>
+<div class="h5"><ins></ins>Mirror<br><b>Alien</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/160" class="noajax" data-tooltip-block="#topchan160">
+   <div class="cover logo" style="background-color: #300404">
+    <img src="http://cdn3.101.ru/vardata/modules/channel/dynamics/pro/0/160.png" alt="Rock Hits">
+   </div>
+   <div class="h3 caps htitle">Rock Hits</div>
+  </a>
+<div class="tooltip-block" id="topchan160">
+ <div class="h4"><ins></ins>220</div>
+<div class="h5"><ins></ins>Perfect<br><b>The Smashing Pumpkins</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/16" class="noajax" data-tooltip-block="#topchan16">
+   <div class="cover logo" style="background-color: #291200">
+    <img src="http://cdn8.101.ru/vardata/modules/channel/dynamics/pro/0/16.png" alt="Modern Rock">
+   </div>
+   <div class="h3 caps htitle">Modern Rock</div>
+  </a>
+<div class="tooltip-block" id="topchan16">
+ <div class="h4"><ins></ins>70</div>
+<div class="h5"><ins></ins>Standing Next To Me<br><b>LAST SHADOW PUPPETS, The</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/211" class="noajax" data-tooltip-block="#topchan211">
+   <div class="cover logo" style="background-color: #000000">
+    <img src="http://cdn2.101.ru/vardata/modules/channel/dynamics/pro/0/211.png" alt="Metal">
+   </div>
+   <div class="h3 caps htitle">Metal</div>
+  </a>
+<div class="tooltip-block" id="topchan211">
+ <div class="h4"><ins></ins>24</div>
+<div class="h5"><ins></ins>Black Prophecies<br><b>DARK ANGEL</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/73" class="noajax" data-tooltip-block="#topchan73">
+   <div class="cover logo" style="background-color: #000000">
+    <img src="http://cdn7.101.ru/vardata/modules/channel/dynamics/pro/0/73.png" alt="Thrash">
+   </div>
+   <div class="h3 caps htitle">Thrash</div>
+  </a>
+<div class="tooltip-block" id="topchan73">
+ <div class="h4"><ins></ins>25</div>
+<div class="h5"><ins></ins>Nails On Leather<br><b>Dissection</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/176" class="noajax" data-tooltip-block="#topchan176">
+   <div class="cover logo" style="background-color: #c22708">
+    <img src="http://cdn4.101.ru/vardata/modules/channel/dynamics/pro/0/176.png" alt="Alternative">
+   </div>
+   <div class="h3 caps htitle">Alternative</div>
+  </a>
+<div class="tooltip-block" id="topchan176">
+ <div class="h4"><ins></ins>162</div>
+<div class="h5"><ins></ins>Suffocate<br><b>Sixx: A.M.</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/42" class="noajax" data-tooltip-block="#topchan42">
+   <div class="cover logo" style="background-color: #695f13">
+    <img src="http://cdn2.101.ru/vardata/modules/channel/dynamics/pro/0/42.png" alt="Русский Рок">
+   </div>
+   <div class="h3 caps htitle">Русский Рок</div>
+  </a>
+<div class="tooltip-block" id="topchan42">
+ <div class="h4"><ins></ins>264</div>
+<div class="h5"><ins></ins>Птицы Белые Мои<br><b>Воскресение</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/257" class="noajax" data-tooltip-block="#topchan257">
+   <div class="cover logo" style="background-color: #000000">
+    <img src="http://cdn3.101.ru/vardata/modules/channel/dynamics/pro/0/257.png" alt="Наш Метал">
+   </div>
+   <div class="h3 caps htitle">Наш Метал</div>
+  </a>
+<div class="tooltip-block" id="topchan257">
+ <div class="h4"><ins></ins>9</div>
+<div class="h5"><ins></ins>Пламя<br><b>A113</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/183" class="noajax" data-tooltip-block="#topchan183">
+   <div class="cover logo" style="background-color: #7d0a2e">
+    <img src="http://cdn3.101.ru/vardata/modules/channel/dynamics/pro/0/183.png" alt="Instrumental Rock">
+   </div>
+   <div class="h3 caps htitle">Instrumental Rock</div>
+  </a>
+<div class="tooltip-block" id="topchan183">
+ <div class="h4"><ins></ins>18</div>
+<div class="h5"><ins></ins>Road To Melnibone<br><b>Stuart Smith</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/70" class="noajax" data-tooltip-block="#topchan70">
+   <div class="cover logo" style="background-color: #521700">
+    <img src="http://cdn1.101.ru/vardata/modules/channel/dynamics/pro/0/70.png" alt="Rock Guitar">
+   </div>
+   <div class="h3 caps htitle">Rock Guitar</div>
+  </a>
+<div class="tooltip-block" id="topchan70">
+ <div class="h4"><ins></ins>47</div>
+<div class="h5"><ins></ins>Livin' On a Prayer<br><b>Bon Jovi</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/185" class="noajax" data-tooltip-block="#topchan185">
+   <div class="cover logo" style="background-color: #363636">
+    <img src="http://cdn1.101.ru/vardata/modules/channel/dynamics/pro/0/185.png" alt="Route 101">
+   </div>
+   <div class="h3 caps htitle">Route 101</div>
+  </a>
+<div class="tooltip-block" id="topchan185">
+ <div class="h4"><ins></ins>16</div>
+<div class="h5"><ins></ins>Can't Stop Lovin' You<br><b>Van Halen</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/71" class="noajax" data-tooltip-block="#topchan71">
+   <div class="cover logo" style="background-color: #ff5500">
+    <img src="http://cdn1.101.ru/vardata/modules/channel/dynamics/pro/0/71.png" alt="Rock Remakes">
+   </div>
+   <div class="h3 caps htitle">Rock Remakes</div>
+  </a>
+<div class="tooltip-block" id="topchan71">
+ <div class="h4"><ins></ins>16</div>
+<div class="h5"><ins></ins>You're My Best Friend<br><b>BEALTES MEETS QUEEN</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/89" class="noajax" data-tooltip-block="#topchan89">
+   <div class="cover logo" style="background-color: #ccbc7a">
+    <img src="http://cdn2.101.ru/vardata/modules/channel/dynamics/pro/0/89.png" alt="Rock'n'Roll">
+   </div>
+   <div class="h3 caps htitle">Rock'n'Roll</div>
+  </a>
+<div class="tooltip-block" id="topchan89">
+ <div class="h4"><ins></ins>37</div>
+<div class="h5"><ins></ins>Sunshine Superman<br><b>Donovan</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/152" class="noajax" data-tooltip-block="#topchan152">
+   <div class="cover logo" style="background-color: #e0ddba">
+    <img src="http://cdn1.101.ru/vardata/modules/channel/dynamics/pro/0/152.png" alt="Indie">
+   </div>
+   <div class="h3 caps htitle">Indie</div>
+  </a>
+<div class="tooltip-block" id="topchan152">
+ <div class="h4"><ins></ins>64</div>
+<div class="h5"><ins></ins>Sleepless In New Amsterdam<br><b>Apollo</b></div> </div></li>
+ <li>
+  <a href="/radio/channel/206" class="noajax" data-tooltip-block="#topchan206">
+   <div class="cover logo" style="background-color: #002ba3">
+    <img src="http://cdn3.101.ru/vardata/modules/channel/dynamics/pro/0/206.png" alt="BritPop">
+   </div>
+   <div class="h3 caps htitle">BritPop</div>
+  </a>
+<div class="tooltip-block" id="topchan206">
+ <div class="h4"><ins></ins>12</div>
+<div class="h5"><ins></ins>Darklands<br><b>JESUS AND MARY CHAIN, The</b></div> </div></li>
+</ul>
+
+
+
+  
+
+</div>
+ <div class="aux240">
+  <br class="clear">
+ <div class="line_30"></div>
+ <div class="full oh">  
+        <style>.aux240 {width: 300px;}
+#adfox_14984653938219890 {width: 300px;}
+
+</style>
+
+<!--AdFox START-->
+<!--Площадка: ГПМ-тех / 101.ru / 300*600-1-->
+<!--Категория: <не задана>-->
+<!--Тип баннера: ГПМ-тех правая колонка-->
+<div id="adfox_14984653938219890"></div>
+<script>
+try {
+   if (!window.adfoxban_14984653938219890) {
+
+    window.Ya.adfoxCode.create({
+        ownerId: 220463,
+        containerId: 'adfox_14984653938219890',
+        params: {
+            p1: 'bxock',
+            p2: 'fqhh',
+        }
+    });
+window.adfoxban_14984653938219890 = true;
+} else {
+
+        window.Ya.adfoxCode.reload("adfox_14984653938219890");
+}
+}catch(e){}
+</script>        <img src="/api/outreach/stat/500/3/spacer.png" border="0" width="1" height="1" style="position:absolute; top:0; left:0;">
+</div>
+
+  <br class="clear">
+ <div class="line_30"></div>
+ <div class="full oh">  
+        <style>.aux240 {width: 300px;}
+
+#adfox_149846541975994810 {width: 300px;}
+</style>
+
+<!--AdFox START-->
+<!--Площадка: ГПМ-тех / 101.ru / 300*600-2-->
+<!--Категория: <не задана>-->
+<!--Тип баннера: ГПМ-тех правая колонка-->
+<div id="adfox_149846541975994810"></div>
+<script>
+try {
+        window.Ya.adfoxCode.create({
+            ownerId: 220463,
+            containerId: 'adfox_149846541975994810',
+onLoad: function() {
+
+try {
+                window.scr = new FixedScroll({
+                    block: "#adfox_149846541975994810",
+
+                });
+            } catch(e) {
+                MP.log(e.message);
+            }
+},
+            onRender: function() {
+},
+            params: {
+                p1: 'bxocl',
+                p2: 'fqhh',
+            }
+        }); 
+}catch(e){}
+</script>        <img src="/api/outreach/stat/501/5/spacer.png" border="0" width="1" height="1" style="position:absolute; top:0; left:0;">
+</div>
+ 
+   </div>
+</div>
+</div>
+
+<div class="h4 top-bage"><a href="/feedback" onclick="return MP.ShowBlock('modal-overlay');" data-scope="local"  data-place="modal-content" block-upload="modal-content">Обратная связь</a></div>
+<div id="left-block" class="caps">
+<!-- Первый уровень меню -->
+<div id="left-menu-first">
+<a href="/" class="logo"><img src="/design/images/main-design/menu-logo.png" alt="101.ru – Онлайн-радио" title="101.ru – Онлайн-радио" class="menu-logo trans-pic hide-menu"></a>
+
+<div class="hr"></div>
+
+<ul class="menu-first full">
+
+
+ <li>
+     
+ <a href="/radio-top" data-name="s-radio" id="menu1" class="current"><ins class="icon icon-menu"></ins><span>Радио</span></a>
+ </li>
+ 
+
+ <li>
+     
+ <a href="/music" data-name="s-music" id="menu2"><ins class="icon icon-menu"></ins><span>Музыка</span></a>
+ </li>
+ 
+
+ <li>
+     
+ <a href="/news" data-name="s-news" id="menu3"><ins class="icon icon-menu"></ins><span>Новости</span></a>
+ </li>
+ 
+
+ <li>
+     
+ <a href="/song-battle2" data-name="s-actions" id="menu4"><ins class="icon icon-menu"></ins><span>Акции</span></a>
+ </li>
+ 
+
+ <li>
+     
+ <a href="/101about" data-name="s-about" id="menu5"><ins class="icon icon-menu"></ins><span>О нас</span></a>
+ </li>
+ </ul>
+
+
+<div class="hr"></div>
+
+<div class="menu-profile full"><a href="/login" class="icon icon-lock-close" title="Войти на 101.ru" onclick="return MP.ShowBlock('modal-overlay');" data-scope="local" data-place="modal-content" data-source="authorization" block-upload="modal-content" id="profile-enter"></a></div>
+<div class="hr"></div>
+<ul class="menu-apps hide-menu full">
+<li><a href="//itunes.apple.com/ru/app/online-radio-101.ru/id486947632?mt=8" class="icon icon-apple noajax" target="_blank" alt="Приложение в App Store" title="Приложение в App Store"></a></li>
+<li><a href="//play.google.com/store/apps/details?id=ru.ideast.ru101" class="icon icon-android noajax" target="_blank" alt="Приложение в Google Play" title="Приложение в Google Play"></a></li>
+<li><a href="//www.windowsphone.com/ru-ru/store/app/radio-101-ru/86e0f9cc-8bb3-417d-ac37-1d964f70b24b" class="icon icon-windows noajax" target="_blank" alt="Приложение для Windows Phone" title="Приложение для Windows Phone"></a></li>
+<li><a href="//vk.com/app3505913" class="icon icon-vk noajax" target="_blank" alt="Приложение ВКонтакте" title="Приложение ВКонтакте"></a></li>
+<li><a href="//apps.facebook.com/webradioapp/" class="icon icon-facebook noajax" target="_blank" alt="Приложение Facebook" title="Приложение Facebook"></a></li>
+</ul>
+
+</div>
+
+<!-- Второй уровень меню -->
+<div id="left-menu-second" class="trans-all-mid">
+<div class="menu-second" id="smenu1">
+
+<ins class="icon-menu"></ins>
+<ul>
+ <li><a href="/radio-top" data-light="1" data-parent="s-radio" class="current">Профессиональное</a></li>
+ <li><a href="/yradio-group" data-light="2" data-parent="s-radio">Радио по настроению</a></li>
+ <li><a href="/personal-top" data-light="3" data-parent="s-radio">Персональное</a></li>
+ <li><a href="/faq101" data-light="4" data-parent="s-radio">Вопрос / Ответ</a></li>
+
+<li><a href="#" onclick="jQuery('#profile-enter').attr('href','/login/pageurl/create-radio').click(); return false;">Создать радио</a></li>
+
+</ul>
+</div>
+<div class="menu-second" id="smenu2">
+
+<ins class="icon-menu"></ins>
+<ul>
+ <li><a href="/music" data-light="1" data-parent="s-music">Новинки</a></li>
+ <li><a href="/tracks" data-light="2" data-parent="s-music">Треки</a></li>
+ <li><a href="/artists" data-light="3" data-parent="s-music">Исполнители</a></li>
+ <li><a href="/videos" data-light="4" data-parent="s-music">Клипы</a></li>
+</ul>
+</div>
+<div class="menu-second" id="smenu3">
+
+<ins class="icon-menu"></ins>
+<ul>
+</ul>
+</div>
+<div class="menu-second" id="smenu4">
+
+<ins class="icon-menu"></ins>
+<ul>
+ <li><a href="/song-battle2" data-light="1" data-parent="s-actions">Radio First Song Battle 2</a></li>
+ <li><a href="/single" data-light="2" data-parent="s-actions">101 Холостяк</a></li>
+ <li><a href="/muzlo" data-light="3" data-parent="s-actions">MуЗЛО</a></li>
+ <li><a href="/101battle" data-light="4" data-parent="s-actions">101 Battle</a></li>
+ <li><a href="/101loveis" data-light="5" data-parent="s-actions">101 Значение Любви</a></li>
+ <li><a href="/song-battle" data-light="6" data-parent="s-actions">Radio First Song Battle</a></li>
+ <li><a href="/music-travel" data-light="7" data-parent="s-actions">Путешествуй под музыку</a></li>
+ <li><a href="/loved-hero" data-light="8" data-parent="s-actions">Любимый Герой на моей тарелочке</a></li>
+ <li><a href="/armoney" data-light="10" data-parent="s-actions">Игра Много денег. Перезагрузка</a></li>
+ <li><a href="/joke-of-the-day" data-light="50" data-parent="s-actions">Шутка дня</a></li>
+</ul>
+</div>
+<div class="menu-second" id="smenu5">
+
+<ins class="icon-menu"></ins>
+<ul>
+ <li><a href="/101about" data-light="2" data-parent="s-about">О проекте</a></li>
+ <li><a href="/101command" data-light="3" data-parent="s-about">Команда</a></li>
+ <li><a href="/101advert" data-light="4" data-parent="s-about">Реклама на 101.ru</a></li>
+ <li><a href="/work" data-light="50" data-parent="s-about">Вакансии</a></li>
+</ul>
+</div>
+<div class="menu-second" id="smenu10">
+    
+<ins class="icon-menu"></ins>
+<ul>
+ <li><a href="/profile" data-light="1" data-parent="s-profile">Обо мне</a></li>
+ <li><a href="/account" data-light="2" data-parent="s-profile">Мои настройки</a></li>
+ <li><a href="/messanger" data-light="3" data-parent="s-profile">Мои диалоги</a></li>
+ <li><a href="/photoalbum" data-light="5" data-parent="s-profile">Мой фотоальбом</a></li>
+ <li><a href="/logout" class="noajax">Выход</a></li>
+</ul>
+</div>
+</div>
+
+
+
+</div>
+</div>
+<script>
+isDocReady(function(){
+    d101.setTimeoutHoverBlock();
+});
+</script>
+ 
+
+ <div id="social-groups">
+  <a href="https://vk.com/onlineradio101ru" target="_blank" class="icon icon-vk" title="Мы ВКонтакте"></a>
+  <a href="https://www.facebook.com/101ru" class="icon icon-facebook" target="_blank" title="Мы в Facebook"></a>
+  <a href="https://ok.ru/radio101.ru" class="icon icon-odnoklassniki" target="_blank" title="Мы в Одноклассниках"></a>
+  <a href="http://social.101.ru/" target="_blank" class="icon icon-mirtesen" title="Мы в Мир Тесен"></a>
+ </div>
+
+
+
+
+
+
+
+ <div id="footer-block" class="copyright volume">
+ <div id="footer-line-slide" class="trans-all-mid pr small">
+ <div class="h7 one-third">
+ <br>
+ <p>Сетевое издание 101.RU, свидетельство о регистрации СМИ ЭЛ № ФС 77 – 68220 от 27.01.2017г., выдано Федеральной службой по надзору в сфере связи, информационных технологий и массовых коммуникаций (Роскомнадзор).</p>
+</div>
+<div class="h7 one-third"></div>
+<div class="h7 one-third last parentmenu">
+<p>Адрес электронной почты для отправления досудебной претензии по вопросам нарушения авторских и смежных прав: <noindex><a rel="nofollow" href="mailto:copyright@vkpm.ru" class="js">copyright@vkpm.ru</a></noindex></p>
+<p><a href="/antipirate" class="js" onclick="return MP.ShowBlock('modal-overlay');" data-scope="local"  data-place="modal-content" data-source="information" block-upload="modal-content">Более подробная информация для правообладателей</a></p>
+</div>
+ </div>
+ <div id="footer-line" class="trans-all-slow">
+  <div class="one-third">&copy;ООО «ГПМ Радио», 2017</div>
+  <div class="one-third parentmenu center"><a href="/agreement" class="js" onclick="return MP.ShowBlock('modal-overlay');" data-scope="local"  data-place="modal-content" data-source="information" block-upload="modal-content">Пользовательское соглашение</a>
+  <br><a href="/disclaimer" class="js" onclick="return MP.ShowBlock('modal-overlay');" data-scope="local"  data-place="modal-content" data-source="information" block-upload="modal-content">Интеллектуальные права и отказ от ответственности.</a>&nbsp;&nbsp;<a href="/privacy_policy" class="js noajax">Политика конфиденциальности</a>
+  </div>
+  <div class="one-third last">
+      <div class="player-volume inline-mid">
+  <span class="icon icon-volume left h4"></span>
+  <div class="sliderStrip pr left">
+   <div class="sliderBack"></div>
+   <div class="sliderThumb"></div>
+  </div>
+ <div id="footer-player"></div>
+ </div>  </div>
+ </div>
+</div> <a href="#" class="pageup"><ins></ins></a>
+<div id="modal-overlay" class="trans-all-slow">
+ <div id="modal" class="r8">
+  <a href="#" id="modal-close" class="h2 icon icon-close right" onclick="jQuery('#modal-content').empty(); return MP.HideBlock('modal-overlay');" title="Закрыть"></a><br clear="all">
+  <div id="modal-content"></div>
+ </div>
+</div>
+<div id="modal-small" class="trans-all-slow">
+ <div id="modal-sm" class="r8">
+  <a href="#" id="modal-sm-close" class="h2 icon icon-close right" onclick="jQuery('#modal-sm-content').empty(); return MP.HideBlock('modal-small');" title="Закрыть"></a><br clear="all">
+  <div id="modal-sm-content"></div>
+ </div>
+</div>
+<div class="showMessageAdBlock black-block">
+ <span class="h2 closeMessageAdBlock icon-close pa"></span>
+ <div class="caps h2">Внимание! У вас включен блокировщик рекламы AdBlock</div>
+ <div class="h3">При включенном плагине AdBlock, мы не можем гарантировать корректность работы всех сервисов сайта.</div>
+</div> <script type="text/javascript" src="http://cdn3.101.ru/design/include/min/commonfiles_new.min.js?v=1511264602"></script>
+<script type="text/javascript" src="http://cdn3.101.ru/design/include/leftmenupc.min.js?v=1492777948"></script> 
+
+<div id="sitestat"><img src="/api/statistics/pageStat/cmVmZXJlcj0mdT1zdGF0NWExNWJjYWE4N2ZlNTIuMzIyNTkxMzMmdXJpPSUyRiUzRmFuJTNEcmFkaW8tZ3JvdXAlMjZncm91cCUzRDg=/stat.png" width="1" height="1" alt=""></div>
+
+<!-- 0.09386 187 -->
+</body>
+</html>

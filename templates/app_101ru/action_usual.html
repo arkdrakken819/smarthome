@@ -1,0 +1,49 @@
+[#if MODE=="play"#]
+[#if TITLE!=""#]
+<h1>[#TITLE#]</h1>
+[#endif TITLE#]
+
+[#if STREAM_URL!=""#]
+<p>Stream: [#STREAM_URL#]</p>
+[#else STREAM_URL#]
+<p>Stream is not selected.</p>
+[#endif STREAM_URL#]
+[#module name="app_player" action="" play="<#STREAM_URL#>" #]
+[#else MODE#]
+
+<script language="javascript">
+
+ var clickId=0;
+
+ function play101station(id) {
+
+  clickId=id;
+  var url="<#ROOTHTML#>popup/app_101ru.html?";
+  url+='&ajax=1&op=playstation&id='+id;
+  $('#result'+clickId).html('<img src="<#ROOTHTML#>img/ajax-loader.gif" border="0">');
+  $.ajax({
+    url: url
+   }).done(function(data) { 
+    $('#result'+clickId).html(data);
+   });
+  return false;
+ }
+</script>
+[#begin CATEGORIES#]
+<div>
+<a href="#" onClick="$('#radiocategory[#ID#]').toggle();return false;"><h2>[#TITLE#]</h2></a>
+<div id="radiocategory[#ID#]" style="display:none;margin-left:20px">
+ [#begin STATIONS#]
+  <h4>
+   <a href="#" onClick="return play101station([#ID#]);"><img src="<#ROOTHTML#>img/btn/btn_play.png" border="0" align="absmiddle" id="play[#ID#]"></a>
+   <a href="<#ROOTHTML#>module/app_101ru.html?md=app_101ru&mode=play&id=[#ID#]" target="_blank">
+    <img src="<#ROOTHTML#>img/btn/btn_play.png" border="0" align="absmiddle">...</a>
+   [#TITLE#]
+      <span id='result[#ID#]'></span>
+  </h4>
+ [#end STATIONS#]
+</div>
+</div>
+[#end CATEGORIES#]
+
+[#endif MODE#]

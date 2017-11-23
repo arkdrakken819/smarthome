@@ -1,0 +1,1721 @@
+/* 
+*    Сценарий для ежедневного создания резервных копий БД и каталогов.
+*
+*    Архивы сохраняются на локальный диск и загружаются в облако (на Яндекс.Диск средствами REST API и OAuth-авторизации).
+*    Предусмотрена ротация архивных копий (хранится не более заданного числа архивов, остальные удаляются).
+*    На каждый ежедневный архив создается собственный каталог с именем вида "год-месяц-день", в который
+*    помещаются файлы с архивами БД и каталогов.
+*
+*    Для использования облачного хранилища Яндекс.Диск предварительно необходимо авторизоваться на Яндексе
+*    и создать приложение здесь https://oauth.yandex.ru/client/new (указать название приложения, дать все права 
+*    в разделе Яндекс.Диск REST API, в Callback URL подставить URL для разработки). В свойствах созданного приложения
+*    будут приведены ID и пароль приложения.
+*
+*    OAuth-токен можно получить вручную согласно этой инструкции https://tech.yandex.ru/oauth/doc/dg/tasks/get-oauth-token-docpage/
+*   Либо, оставив поле token в $yandexDiskConfig пустым, указать в этом сценарии свои логин и пароль для доступа к сервисам Яндекса,
+*   тогда токен будет запрашиваться у Яндекса при каждом запуске сценария. Рекомендую запросить токен таким образом однократно, а в 
+*    дальнейшем полученный токен указывать непосредственно в $yandexDiskConfig).
+*    
+*   Если имеется несколько учеток к Яндекс.Диск, то достаточно создать только одно приложение и указывать его ID и пароль при
+*   получении токена для другой учетки.
+*
+*/
+
+
+/* 
+    Конфигурация и параметры
+*/
+$numberOfCloudBackups = gg('dailyBackup.numberOfCloudBackups');    // количество хранимых бэкапов в облаке (в днях)
+$numberOfLocalBackups = gg('dailyBackup.numberOfLocalBackups');    // количество хранимых бэкапов локально (в днях)
+$cloudBackupFolder = gg('dailyBackup.cloudBackupFolder');        // каталог для бэкапов в облаке (например, /backups)
+$localBackupFolder = gg('dailyBackup.localBackupFolder');        // локальный каталог для бэкапов (например, /home/skysilver/backups)
+
+// Путь к вспомогательному shell-скрипту
+//     У пользователя www-data нет права чтения некоторых каталогов. Поэтому, чтобы была возможность такие
+//     каталоги архивировать, для запуска линуксовых команд используется shell-скрипт, который благодаря sudo
+//     может запускаться с правами root под пользователем www-data.
+//     Чтобы дать пользователю www-data возможность запускать этот скрипт от root,
+//     необходимо в /etc/sudoers добавить строку www-data ALL=(root) NOPASSWD: /путь_до_скрипта/backup.sh
+$shellScript = "/var/www/bak/backup.sh";
+
+// Определим путь к текущему (сегодняшнему) локальному каталогу и каталогу на Яндекс Диск
+$todayLocalFolder = $localBackupFolder."/".date('Y-m-d');
+$todayCloudFolder = $cloudBackupFolder."/".date('Y-m-d');
+
+// Архивируемые БД и реквизиты доступа к ним.
+$databases = [
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'db_terminal'],
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'mysql'],
+];
+
+// Архивируемые каталоги
+$dirs = [
+    ['name' => 'etc', 'path' => '/etc'],
+    ['name' => 'mysql', 'path' => '/var/lib/mysql'],
+    ['name' => 'logs', 'path' => '/var/log'],
+    ['name' => 'bin', 'path' => '/bin'], 
+    ['name' => 'boot', 'path' => '/boot'], 
+    ['name' => 'lib', 'path' => '/lib'],  
+    ['name' => 'www', 'path' => '/var/www'],
+];
+
+// Реквизиты доступа к Яндекс Диск
+// Если токен уже получен, то параметры app_id, app_secret, login и password можно не заполнять.
+// Если токена нет, то заполняем все поля, а поле token оставляем пустым (равным '').
+$yandexDiskConfig = [
+    'app_id' => gg('YaDisk1.app_id'),            // идентификатор приложения
+    'app_secret' => gg('YaDisk1.app_secret'),    // секретный ключ (пароль) приложения
+    'token' => gg('YaDisk1.token'),                // OAuth-токен
+    'login' => gg('YaDisk1.login'),                // логин пользователя
+    'password' => gg('YaDisk1.password'),        // пароль пользователя
+];
+
+// Писать логи ( 0-нет, 1-только критические, 2-все )
+$reclog = 1;
+
+// Т.к. архивирование и загрузка файлов в облако может занимать неопределенное время,
+// то снимем ограничение на время выполнения php-скрипта (по умолчанию в моем конфиге php.ini задано 90 секунд).
+set_time_limit(0);
+
+
+/* 
+    Оповещение
+*/
+
+say('Начинаю архивацию данных на сервере.', 1);
+
+say("Начало резервного копирования данных на сервере.",1);
+ 
+
+
+/* 
+    Архивация БД и каталогов сервера на локальный диск
+*/
+
+say('Этап 1. Архивация БД и каталогов сервера на локальный диск.',1);
+
+// Проверяем, создан или нет общий каталог для бэкапов. Если нет, то создаем.
+if (!is_dir($localBackupFolder)) {
+    say('Создаем общий каталог %s на локальном диске.', 1);
+    if (!mkdir($localBackupFolder, 0777)) {
+        say('Не удалось создать общий каталог на локальном диске.',1);
+         return;
+    } else {
+        say('Общий каталог успешно создан.',1);
+    }    
+} else {
+    say('Общий каталог для бэкапов уже создан на локальном диске.',1);
+}
+
+// Проверяем, создан или нет каталог для ежедневного бэкапа. Если нет, то создаем.
+if (!is_dir($todayLocalFolder)) {
+    say(sprintf('Создаем каталог для ежедневного бэкапа %s на локальном диске.', $todayLocalFolder),1);
+    if (!mkdir($todayLocalFolder, 0777)) {
+         say('Не удалось создать каталог для ежедневного бэкапа на локальном диске.',1);
+         return;
+    } else {
+        say('Каталог для ежедневного бэкапа успешно создан.',1);
+    }    
+} else {
+    say(sprintf('Каталог для ежедневного бэкапа %s уже создан на локальном диске.', $todayLocalFolder),1);
+}
+
+    /*     Архивирование баз данных    */
+
+    $date = date('Y-m-d_H-i');
+    foreach ($databases as $db) {
+        $filename = "$todayLocalFolder/mysql_{$db['dbname']}_$date.sql.gz";
+        // f - force overwrite of output file and compress links
+        // 1 - compress faster
+        // 9 - compress better
+         // mysqldump  --opt - аккумулирует в себя сразу несколько опций
+        // (--add-drop-table, --add-locks, --all, --extended-insert, --quick, --lock-tables)
+        $cmd = "mysqldump --user={$db['login']} --password={$db['password']} --no-create-db --add-drop-table {$db['dbname']} | gzip -f -9 > $filename";
+say(sprintf($cmd, $out),1);     
+        exec($cmd, $out);
+     
+        if (!file_exists($filename) || filesize($filename) < 100) {
+             say(sprintf('Резервная копия БД %s не создана: %s', $db['dbname'], $out),1);
+        } else {
+            say(sprintf('Резервная копия БД %s успешно создана на локальном диске.', $db['dbname']),1);
+        }
+    }
+
+    
+    
+    foreach ($dirs as $dir) {
+        $filename = "$todayLocalFolder/files_{$dir['name']}_$date.tar.gz";
+        //c - создать архив,
+        //v - выводить информацию о процессе,
+        //z - использовать сжатие gzip,
+        //p - сохраняем данные о владельцах и правах доступа,
+        //f - пишем архив в файл
+        //P - don't strip leading `/'s from file names 
+        $cmd = "sudo ".$shellScript." -czpPf $filename {$dir['path']}";
+        //var_dump($cmd);
+        exec($cmd, $out);
+        //var_dump($op);
+        if (!file_exists($filename) || filesize($filename) < 100) {
+            say(sprintf('Резервная копия каталога %s не создана: %s', $dir['name'], $out),1);
+        } else {
+            say(sprintf('Резервная копия каталога %s успешно создана на локальном диске.', $dir['name']),1);
+        }
+    }
+
+say('Архивация данных на сервере закончена.', 1);
+    
+/* 
+    Копирование локального бэкапа в облако
+*/
+
+say('Начинаю копирование локального бэкапа в облако.', 1);
+
+say('Этап 2. Копирование локального бэкапа в облако.',1);
+
+// Создаем объект класса Yandex_Disk
+// Если токен еще не получен (не указан в конфиге), то запросим его.
+if( $yandexDiskConfig['token'] == '' ) {
+    $ynd = new Yandex_Disk($yandexDiskConfig);
+    $myToken = $ynd->getToken();
+    //echo "<br> Токен = ".$myToken." <br>";
+     //sg('YaDisk1.token', $myToken);
+     say(sprintf('Мой OAuth-токен: %s', $myToken),1);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка запроса OAuth-токена: %s', $ynd->error),1);
+    }
+}
+else $ynd = new Yandex_Disk($yandexDiskConfig);
+
+// Узнаем доступное место на Яндекс Диске (для справки)
+$req = $ynd->get();
+if( isset($req['error']) ) {
+     say(sprintf('Ошибка запроса метаинформации о диске: %s', $req['message']),1);
+ } else {
+    //Получаем свободное и занятое место
+    sg('YaDisk1.totalSpace', round(($req['total_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.usedSpace', round(($req['used_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.freeSpace', round(($req['total_space'] - $req['used_space']) / 1024 / 1024 / 1024, 2));
+      say(sprintf('Всего места на Яндекс.Диске: %s ГБ.', gg('YaDisk1.totalSpace')),1);
+      say(sprintf('Занято данными: %s ГБ.', gg('YaDisk1.usedSpace')),1);
+      say(sprintf('Свободно: %s ГБ.', gg('YaDisk1.freeSpace')),1);     
+ }
+
+// Проверяем, создан или нет общий каталог для бэкапов на Яндекс Диске. Если нет, то создаем.
+$req = $ynd->resources_get($cloudBackupFolder);
+if( isset($req['error']) || $req['path'] != 'disk:'.$cloudBackupFolder) {
+    say(sprintf('Создаем общий каталог %s на Яндекс.Диске.', $todayCloudFolder),1);
+    $req = $ynd->resources_put($cloudBackupFolder);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка создания общего каталога на Яндекс.Диск: %s', $ynd->error),1);
+     } else {
+        say('Общий каталог успешно создан.',1);
+     }    
+ } else {
+    say('Общий каталог для бэкапов уже создан на Яндекс.Диске.',1);
+ }
+ 
+// Если локальный каталог с архивами существует
+if (is_dir($todayLocalFolder)) {
+    // Узнаем содержимое каталога
+    $files = scandir($todayLocalFolder);
+    // Проверяем, создан или нет каталог для ежедневного бэкапа на Яндекс Диске. Если нет, то создаем.
+    $req = $ynd->resources_get($todayCloudFolder);
+    if( isset($req['error']) || $req['path'] != 'disk:'.$todayCloudFolder) {
+        say(sprintf('Создаем каталог для ежедневного бэкапа %s на Яндекс.Диске.', $todayCloudFolder),1);
+        $req = $ynd->resources_put($todayCloudFolder);
+        if( isset($ynd->error) ) {
+             say(sprintf('Ошибка создания каталога для ежедневного бэкапа на Яндекс.Диск: %s', $ynd->error),1);
+        } else {
+            say('Каталог для ежедневного бэкапа успешно создан.',1);    
+        }    
+    } else {
+        say(sprintf('Каталог для ежедневного бэкапа %s уже создан на Яндекс.Диске.', $todayCloudFolder),1);
+    }
+    
+    // Загрузим все файлы архивов на Яндекс Диск
+    foreach($files as $file) {
+        if(($file != ".") && ($file != "..")) {
+            if(is_file($todayLocalFolder."/".$file)) {
+                $fileCloudPath = $todayCloudFolder."/".$file;
+                $fileLocalPath = $todayLocalFolder."/".$file;
+                 // Если файл с таким же именем уже существует, то будет переписан.
+                say(sprintf('Загрузка на Яндекс.Диск: %s [%s Байт]', $file, filesize($fileLocalPath)),1);
+                 $req = $ynd->file_upload($fileCloudPath, $fileLocalPath);                 
+            }
+        }
+    }
+    
+}
+
+say('Копирование локального бэкапа в облако завершено.', 1);
+
+/* 
+    Ротация бэкапов на локальном диске и в облаке
+*/
+
+say('Начинаю ротацию резервных копий.', 1);
+
+say('Этап 3. Ротация бэкапов на локальном диске и в облаке.',1);
+
+    /*     Ротация бэкапов на локальном диске    */
+    
+    // Если локальный каталог с архивами существует
+    if (is_dir($localBackupFolder)) {
+        // Узнаем содержимое каталога
+        $req = scandir($localBackupFolder);
+        // Если каталог с архивами не пустой (не учитываем текущую '.' и родительскую '..' директории)
+        if ((count($req) - 2) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0, $j = 0; $i < count($req); $i++) {
+                if ((is_dir($localBackupFolder."/".$req[$i])) && ($req[$i] != ".") && ($req[$i] != "..")) {
+                    // Берем имя (путь) подкаталога и время создания
+                    $locallist[$j]['path'] = $localBackupFolder."/".$req[$i];
+                    $locallist[$j]['created'] = filemtime($localBackupFolder."/".$req[$i]);
+                    $j += 1;
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на локальном диске.', count($locallist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($locallist) > $numberOfLocalBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($locallist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($locallist, -$numberOfLocalBackups);
+                say(sprintf('Для удаления %s каталогов.', count($locallist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($locallist as $l) {
+                    removeDirectory($l['path']);
+                     say(sprintf('Каталог %s удален с локального диска.', $l['path']),1);
+                }        
+            } else {             
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+
+    }
+    
+    
+    /*     Ротация бэкапов на Яндекс Диске    */
+    
+    // Узнаем содержимое каталога
+    $req = $ynd->resources_get($cloudBackupFolder, '_embedded.path,_embedded.total,_embedded.items.name,_embedded.items.type,_embedded.items.path,_embedded.items.created');
+    if( isset($req['error']) ) {
+        say(sprintf('Ошибка запроса списка каталогов и файлов на Яндекс.Диск: %s', $req['message']),1);
+    } else {
+         // Если каталог с архивами не пустой
+        if (count($req['_embedded']['items']) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0; $i < count($req['_embedded']['items']); $i++) {
+                if ($req['_embedded']['items'][$i]['type'] == 'dir') {
+                    // Берем имя (путь) подкаталога и время создания
+                    $cloudlist[$i]['path'] = $req['_embedded']['items'][$i]['path'];
+                    $cloudlist[$i]['created'] = strtotime($req['_embedded']['items'][$i]['created']);
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на Яндекс.Диске.', count($cloudlist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($cloudlist) > $numberOfCloudBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($cloudlist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($cloudlist, -$numberOfCloudBackups);
+                say(sprintf('Для удаления %s каталогов.', count($cloudlist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($cloudlist as $l) {
+                    $req = $ynd->resources_delete($l['path'], false, true);
+                    if( isset($req['error']) ) {
+                        say(sprintf('Ошибка удаления каталога %s с Яндекс.Диск: %s', $l['path'], $req['message']),1);
+                    } else {             
+                         say(sprintf('Каталог %s удален с Яндекс.Диска.', $l['path']),1);
+                    }
+                }        
+            }
+            else {
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+    }
+
+say('Ротация резервных копий завершена.', 1);
+
+say('Завершение резервного копирования данных на сервере.',1); 
+
+sg('dailyBackup.last',$date );/* 
+*    Сценарий для ежедневного создания резервных копий БД и каталогов.
+*
+*    Архивы сохраняются на локальный диск и загружаются в облако (на Яндекс.Диск средствами REST API и OAuth-авторизации).
+*    Предусмотрена ротация архивных копий (хранится не более заданного числа архивов, остальные удаляются).
+*    На каждый ежедневный архив создается собственный каталог с именем вида "год-месяц-день", в который
+*    помещаются файлы с архивами БД и каталогов.
+*
+*    Для использования облачного хранилища Яндекс.Диск предварительно необходимо авторизоваться на Яндексе
+*    и создать приложение здесь https://oauth.yandex.ru/client/new (указать название приложения, дать все права 
+*    в разделе Яндекс.Диск REST API, в Callback URL подставить URL для разработки). В свойствах созданного приложения
+*    будут приведены ID и пароль приложения.
+*
+*    OAuth-токен можно получить вручную согласно этой инструкции https://tech.yandex.ru/oauth/doc/dg/tasks/get-oauth-token-docpage/
+*   Либо, оставив поле token в $yandexDiskConfig пустым, указать в этом сценарии свои логин и пароль для доступа к сервисам Яндекса,
+*   тогда токен будет запрашиваться у Яндекса при каждом запуске сценария. Рекомендую запросить токен таким образом однократно, а в 
+*    дальнейшем полученный токен указывать непосредственно в $yandexDiskConfig).
+*    
+*   Если имеется несколько учеток к Яндекс.Диск, то достаточно создать только одно приложение и указывать его ID и пароль при
+*   получении токена для другой учетки.
+*
+*/
+
+
+/* 
+    Конфигурация и параметры
+*/
+$numberOfCloudBackups = gg('dailyBackup.numberOfCloudBackups');    // количество хранимых бэкапов в облаке (в днях)
+$numberOfLocalBackups = gg('dailyBackup.numberOfLocalBackups');    // количество хранимых бэкапов локально (в днях)
+$cloudBackupFolder = gg('dailyBackup.cloudBackupFolder');        // каталог для бэкапов в облаке (например, /backups)
+$localBackupFolder = gg('dailyBackup.localBackupFolder');        // локальный каталог для бэкапов (например, /home/skysilver/backups)
+
+// Путь к вспомогательному shell-скрипту
+//     У пользователя www-data нет права чтения некоторых каталогов. Поэтому, чтобы была возможность такие
+//     каталоги архивировать, для запуска линуксовых команд используется shell-скрипт, который благодаря sudo
+//     может запускаться с правами root под пользователем www-data.
+//     Чтобы дать пользователю www-data возможность запускать этот скрипт от root,
+//     необходимо в /etc/sudoers добавить строку www-data ALL=(root) NOPASSWD: /путь_до_скрипта/backup.sh
+$shellScript = "/var/www/bak/backup.sh";
+
+// Определим путь к текущему (сегодняшнему) локальному каталогу и каталогу на Яндекс Диск
+$todayLocalFolder = $localBackupFolder."/".date('Y-m-d');
+$todayCloudFolder = $cloudBackupFolder."/".date('Y-m-d');
+
+// Архивируемые БД и реквизиты доступа к ним.
+$databases = [
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'db_terminal'],
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'mysql'],
+];
+
+// Архивируемые каталоги
+$dirs = [
+    ['name' => 'etc', 'path' => '/etc'],
+    ['name' => 'mysql', 'path' => '/var/lib/mysql'],
+    ['name' => 'logs', 'path' => '/var/log'],
+    ['name' => 'bin', 'path' => '/bin'], 
+    ['name' => 'boot', 'path' => '/boot'], 
+    ['name' => 'lib', 'path' => '/lib'],  
+    ['name' => 'www', 'path' => '/var/www'],
+];
+
+// Реквизиты доступа к Яндекс Диск
+// Если токен уже получен, то параметры app_id, app_secret, login и password можно не заполнять.
+// Если токена нет, то заполняем все поля, а поле token оставляем пустым (равным '').
+$yandexDiskConfig = [
+    'app_id' => gg('YaDisk1.app_id'),            // идентификатор приложения
+    'app_secret' => gg('YaDisk1.app_secret'),    // секретный ключ (пароль) приложения
+    'token' => gg('YaDisk1.token'),                // OAuth-токен
+    'login' => gg('YaDisk1.login'),                // логин пользователя
+    'password' => gg('YaDisk1.password'),        // пароль пользователя
+];
+
+// Писать логи ( 0-нет, 1-только критические, 2-все )
+$reclog = 1;
+
+// Т.к. архивирование и загрузка файлов в облако может занимать неопределенное время,
+// то снимем ограничение на время выполнения php-скрипта (по умолчанию в моем конфиге php.ini задано 90 секунд).
+set_time_limit(0);
+
+
+/* 
+    Оповещение
+*/
+
+say('Начинаю архивацию данных на сервере.', 1);
+
+say("Начало резервного копирования данных на сервере.",1);
+ 
+
+
+/* 
+    Архивация БД и каталогов сервера на локальный диск
+*/
+
+say('Этап 1. Архивация БД и каталогов сервера на локальный диск.',1);
+
+// Проверяем, создан или нет общий каталог для бэкапов. Если нет, то создаем.
+if (!is_dir($localBackupFolder)) {
+    say('Создаем общий каталог %s на локальном диске.', 1);
+    if (!mkdir($localBackupFolder, 0777)) {
+        say('Не удалось создать общий каталог на локальном диске.',1);
+         return;
+    } else {
+        say('Общий каталог успешно создан.',1);
+    }    
+} else {
+    say('Общий каталог для бэкапов уже создан на локальном диске.',1);
+}
+
+// Проверяем, создан или нет каталог для ежедневного бэкапа. Если нет, то создаем.
+if (!is_dir($todayLocalFolder)) {
+    say(sprintf('Создаем каталог для ежедневного бэкапа %s на локальном диске.', $todayLocalFolder),1);
+    if (!mkdir($todayLocalFolder, 0777)) {
+         say('Не удалось создать каталог для ежедневного бэкапа на локальном диске.',1);
+         return;
+    } else {
+        say('Каталог для ежедневного бэкапа успешно создан.',1);
+    }    
+} else {
+    say(sprintf('Каталог для ежедневного бэкапа %s уже создан на локальном диске.', $todayLocalFolder),1);
+}
+
+    /*     Архивирование баз данных    */
+
+    $date = date('Y-m-d_H-i');
+    foreach ($databases as $db) {
+        $filename = "$todayLocalFolder/mysql_{$db['dbname']}_$date.sql.gz";
+        // f - force overwrite of output file and compress links
+        // 1 - compress faster
+        // 9 - compress better
+         // mysqldump  --opt - аккумулирует в себя сразу несколько опций
+        // (--add-drop-table, --add-locks, --all, --extended-insert, --quick, --lock-tables)
+        $cmd = "mysqldump --user={$db['login']} --password={$db['password']} --no-create-db --add-drop-table {$db['dbname']} | gzip -f -9 > $filename";
+say(sprintf($cmd, $out),1);     
+        exec($cmd, $out);
+     
+        if (!file_exists($filename) || filesize($filename) < 100) {
+             say(sprintf('Резервная копия БД %s не создана: %s', $db['dbname'], $out),1);
+        } else {
+            say(sprintf('Резервная копия БД %s успешно создана на локальном диске.', $db['dbname']),1);
+        }
+    }
+
+    
+    
+    foreach ($dirs as $dir) {
+        $filename = "$todayLocalFolder/files_{$dir['name']}_$date.tar.gz";
+        //c - создать архив,
+        //v - выводить информацию о процессе,
+        //z - использовать сжатие gzip,
+        //p - сохраняем данные о владельцах и правах доступа,
+        //f - пишем архив в файл
+        //P - don't strip leading `/'s from file names 
+        $cmd = "sudo ".$shellScript." -czpPf $filename {$dir['path']}";
+        //var_dump($cmd);
+        exec($cmd, $out);
+        //var_dump($op);
+        if (!file_exists($filename) || filesize($filename) < 100) {
+            say(sprintf('Резервная копия каталога %s не создана: %s', $dir['name'], $out),1);
+        } else {
+            say(sprintf('Резервная копия каталога %s успешно создана на локальном диске.', $dir['name']),1);
+        }
+    }
+
+say('Архивация данных на сервере закончена.', 1);
+    
+/* 
+    Копирование локального бэкапа в облако
+*/
+
+say('Начинаю копирование локального бэкапа в облако.', 1);
+
+say('Этап 2. Копирование локального бэкапа в облако.',1);
+
+// Создаем объект класса Yandex_Disk
+// Если токен еще не получен (не указан в конфиге), то запросим его.
+if( $yandexDiskConfig['token'] == '' ) {
+    $ynd = new Yandex_Disk($yandexDiskConfig);
+    $myToken = $ynd->getToken();
+    //echo "<br> Токен = ".$myToken." <br>";
+     //sg('YaDisk1.token', $myToken);
+     say(sprintf('Мой OAuth-токен: %s', $myToken),1);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка запроса OAuth-токена: %s', $ynd->error),1);
+    }
+}
+else $ynd = new Yandex_Disk($yandexDiskConfig);
+
+// Узнаем доступное место на Яндекс Диске (для справки)
+$req = $ynd->get();
+if( isset($req['error']) ) {
+     say(sprintf('Ошибка запроса метаинформации о диске: %s', $req['message']),1);
+ } else {
+    //Получаем свободное и занятое место
+    sg('YaDisk1.totalSpace', round(($req['total_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.usedSpace', round(($req['used_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.freeSpace', round(($req['total_space'] - $req['used_space']) / 1024 / 1024 / 1024, 2));
+      say(sprintf('Всего места на Яндекс.Диске: %s ГБ.', gg('YaDisk1.totalSpace')),1);
+      say(sprintf('Занято данными: %s ГБ.', gg('YaDisk1.usedSpace')),1);
+      say(sprintf('Свободно: %s ГБ.', gg('YaDisk1.freeSpace')),1);     
+ }
+
+// Проверяем, создан или нет общий каталог для бэкапов на Яндекс Диске. Если нет, то создаем.
+$req = $ynd->resources_get($cloudBackupFolder);
+if( isset($req['error']) || $req['path'] != 'disk:'.$cloudBackupFolder) {
+    say(sprintf('Создаем общий каталог %s на Яндекс.Диске.', $todayCloudFolder),1);
+    $req = $ynd->resources_put($cloudBackupFolder);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка создания общего каталога на Яндекс.Диск: %s', $ynd->error),1);
+     } else {
+        say('Общий каталог успешно создан.',1);
+     }    
+ } else {
+    say('Общий каталог для бэкапов уже создан на Яндекс.Диске.',1);
+ }
+ 
+// Если локальный каталог с архивами существует
+if (is_dir($todayLocalFolder)) {
+    // Узнаем содержимое каталога
+    $files = scandir($todayLocalFolder);
+    // Проверяем, создан или нет каталог для ежедневного бэкапа на Яндекс Диске. Если нет, то создаем.
+    $req = $ynd->resources_get($todayCloudFolder);
+    if( isset($req['error']) || $req['path'] != 'disk:'.$todayCloudFolder) {
+        say(sprintf('Создаем каталог для ежедневного бэкапа %s на Яндекс.Диске.', $todayCloudFolder),1);
+        $req = $ynd->resources_put($todayCloudFolder);
+        if( isset($ynd->error) ) {
+             say(sprintf('Ошибка создания каталога для ежедневного бэкапа на Яндекс.Диск: %s', $ynd->error),1);
+        } else {
+            say('Каталог для ежедневного бэкапа успешно создан.',1);    
+        }    
+    } else {
+        say(sprintf('Каталог для ежедневного бэкапа %s уже создан на Яндекс.Диске.', $todayCloudFolder),1);
+    }
+    
+    // Загрузим все файлы архивов на Яндекс Диск
+    foreach($files as $file) {
+        if(($file != ".") && ($file != "..")) {
+            if(is_file($todayLocalFolder."/".$file)) {
+                $fileCloudPath = $todayCloudFolder."/".$file;
+                $fileLocalPath = $todayLocalFolder."/".$file;
+                 // Если файл с таким же именем уже существует, то будет переписан.
+                say(sprintf('Загрузка на Яндекс.Диск: %s [%s Байт]', $file, filesize($fileLocalPath)),1);
+                 $req = $ynd->file_upload($fileCloudPath, $fileLocalPath);                 
+            }
+        }
+    }
+    
+}
+
+say('Копирование локального бэкапа в облако завершено.', 1);
+
+/* 
+    Ротация бэкапов на локальном диске и в облаке
+*/
+
+say('Начинаю ротацию резервных копий.', 1);
+
+say('Этап 3. Ротация бэкапов на локальном диске и в облаке.',1);
+
+    /*     Ротация бэкапов на локальном диске    */
+    
+    // Если локальный каталог с архивами существует
+    if (is_dir($localBackupFolder)) {
+        // Узнаем содержимое каталога
+        $req = scandir($localBackupFolder);
+        // Если каталог с архивами не пустой (не учитываем текущую '.' и родительскую '..' директории)
+        if ((count($req) - 2) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0, $j = 0; $i < count($req); $i++) {
+                if ((is_dir($localBackupFolder."/".$req[$i])) && ($req[$i] != ".") && ($req[$i] != "..")) {
+                    // Берем имя (путь) подкаталога и время создания
+                    $locallist[$j]['path'] = $localBackupFolder."/".$req[$i];
+                    $locallist[$j]['created'] = filemtime($localBackupFolder."/".$req[$i]);
+                    $j += 1;
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на локальном диске.', count($locallist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($locallist) > $numberOfLocalBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($locallist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($locallist, -$numberOfLocalBackups);
+                say(sprintf('Для удаления %s каталогов.', count($locallist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($locallist as $l) {
+                    removeDirectory($l['path']);
+                     say(sprintf('Каталог %s удален с локального диска.', $l['path']),1);
+                }        
+            } else {             
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+
+    }
+    
+    
+    /*     Ротация бэкапов на Яндекс Диске    */
+    
+    // Узнаем содержимое каталога
+    $req = $ynd->resources_get($cloudBackupFolder, '_embedded.path,_embedded.total,_embedded.items.name,_embedded.items.type,_embedded.items.path,_embedded.items.created');
+    if( isset($req['error']) ) {
+        say(sprintf('Ошибка запроса списка каталогов и файлов на Яндекс.Диск: %s', $req['message']),1);
+    } else {
+         // Если каталог с архивами не пустой
+        if (count($req['_embedded']['items']) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0; $i < count($req['_embedded']['items']); $i++) {
+                if ($req['_embedded']['items'][$i]['type'] == 'dir') {
+                    // Берем имя (путь) подкаталога и время создания
+                    $cloudlist[$i]['path'] = $req['_embedded']['items'][$i]['path'];
+                    $cloudlist[$i]['created'] = strtotime($req['_embedded']['items'][$i]['created']);
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на Яндекс.Диске.', count($cloudlist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($cloudlist) > $numberOfCloudBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($cloudlist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($cloudlist, -$numberOfCloudBackups);
+                say(sprintf('Для удаления %s каталогов.', count($cloudlist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($cloudlist as $l) {
+                    $req = $ynd->resources_delete($l['path'], false, true);
+                    if( isset($req['error']) ) {
+                        say(sprintf('Ошибка удаления каталога %s с Яндекс.Диск: %s', $l['path'], $req['message']),1);
+                    } else {             
+                         say(sprintf('Каталог %s удален с Яндекс.Диска.', $l['path']),1);
+                    }
+                }        
+            }
+            else {
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+    }
+
+say('Ротация резервных копий завершена.', 1);
+
+say('Завершение резервного копирования данных на сервере.',1); 
+
+sg('dailyBackup.last',$date );/* 
+*    Сценарий для ежедневного создания резервных копий БД и каталогов.
+*
+*    Архивы сохраняются на локальный диск и загружаются в облако (на Яндекс.Диск средствами REST API и OAuth-авторизации).
+*    Предусмотрена ротация архивных копий (хранится не более заданного числа архивов, остальные удаляются).
+*    На каждый ежедневный архив создается собственный каталог с именем вида "год-месяц-день", в который
+*    помещаются файлы с архивами БД и каталогов.
+*
+*    Для использования облачного хранилища Яндекс.Диск предварительно необходимо авторизоваться на Яндексе
+*    и создать приложение здесь https://oauth.yandex.ru/client/new (указать название приложения, дать все права 
+*    в разделе Яндекс.Диск REST API, в Callback URL подставить URL для разработки). В свойствах созданного приложения
+*    будут приведены ID и пароль приложения.
+*
+*    OAuth-токен можно получить вручную согласно этой инструкции https://tech.yandex.ru/oauth/doc/dg/tasks/get-oauth-token-docpage/
+*   Либо, оставив поле token в $yandexDiskConfig пустым, указать в этом сценарии свои логин и пароль для доступа к сервисам Яндекса,
+*   тогда токен будет запрашиваться у Яндекса при каждом запуске сценария. Рекомендую запросить токен таким образом однократно, а в 
+*    дальнейшем полученный токен указывать непосредственно в $yandexDiskConfig).
+*    
+*   Если имеется несколько учеток к Яндекс.Диск, то достаточно создать только одно приложение и указывать его ID и пароль при
+*   получении токена для другой учетки.
+*
+*/
+
+
+/* 
+    Конфигурация и параметры
+*/
+$numberOfCloudBackups = gg('dailyBackup.numberOfCloudBackups');    // количество хранимых бэкапов в облаке (в днях)
+$numberOfLocalBackups = gg('dailyBackup.numberOfLocalBackups');    // количество хранимых бэкапов локально (в днях)
+$cloudBackupFolder = gg('dailyBackup.cloudBackupFolder');        // каталог для бэкапов в облаке (например, /backups)
+$localBackupFolder = gg('dailyBackup.localBackupFolder');        // локальный каталог для бэкапов (например, /home/skysilver/backups)
+
+// Путь к вспомогательному shell-скрипту
+//     У пользователя www-data нет права чтения некоторых каталогов. Поэтому, чтобы была возможность такие
+//     каталоги архивировать, для запуска линуксовых команд используется shell-скрипт, который благодаря sudo
+//     может запускаться с правами root под пользователем www-data.
+//     Чтобы дать пользователю www-data возможность запускать этот скрипт от root,
+//     необходимо в /etc/sudoers добавить строку www-data ALL=(root) NOPASSWD: /путь_до_скрипта/backup.sh
+$shellScript = "/var/www/bak/backup.sh";
+
+// Определим путь к текущему (сегодняшнему) локальному каталогу и каталогу на Яндекс Диск
+$todayLocalFolder = $localBackupFolder."/".date('Y-m-d');
+$todayCloudFolder = $cloudBackupFolder."/".date('Y-m-d');
+
+// Архивируемые БД и реквизиты доступа к ним.
+$databases = [
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'db_terminal'],
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'mysql'],
+];
+
+// Архивируемые каталоги
+$dirs = [
+    ['name' => 'etc', 'path' => '/etc'],
+    ['name' => 'mysql', 'path' => '/var/lib/mysql'],
+    ['name' => 'logs', 'path' => '/var/log'],
+    ['name' => 'bin', 'path' => '/bin'], 
+    ['name' => 'boot', 'path' => '/boot'], 
+    ['name' => 'lib', 'path' => '/lib'],  
+    ['name' => 'www', 'path' => '/var/www'],
+];
+
+// Реквизиты доступа к Яндекс Диск
+// Если токен уже получен, то параметры app_id, app_secret, login и password можно не заполнять.
+// Если токена нет, то заполняем все поля, а поле token оставляем пустым (равным '').
+$yandexDiskConfig = [
+    'app_id' => gg('YaDisk1.app_id'),            // идентификатор приложения
+    'app_secret' => gg('YaDisk1.app_secret'),    // секретный ключ (пароль) приложения
+    'token' => gg('YaDisk1.token'),                // OAuth-токен
+    'login' => gg('YaDisk1.login'),                // логин пользователя
+    'password' => gg('YaDisk1.password'),        // пароль пользователя
+];
+
+// Писать логи ( 0-нет, 1-только критические, 2-все )
+$reclog = 1;
+
+// Т.к. архивирование и загрузка файлов в облако может занимать неопределенное время,
+// то снимем ограничение на время выполнения php-скрипта (по умолчанию в моем конфиге php.ini задано 90 секунд).
+set_time_limit(0);
+
+
+/* 
+    Оповещение
+*/
+
+say('Начинаю архивацию данных на сервере.', 1);
+
+say("Начало резервного копирования данных на сервере.",1);
+ 
+
+
+/* 
+    Архивация БД и каталогов сервера на локальный диск
+*/
+
+say('Этап 1. Архивация БД и каталогов сервера на локальный диск.',1);
+
+// Проверяем, создан или нет общий каталог для бэкапов. Если нет, то создаем.
+if (!is_dir($localBackupFolder)) {
+    say('Создаем общий каталог %s на локальном диске.', 1);
+    if (!mkdir($localBackupFolder, 0777)) {
+        say('Не удалось создать общий каталог на локальном диске.',1);
+         return;
+    } else {
+        say('Общий каталог успешно создан.',1);
+    }    
+} else {
+    say('Общий каталог для бэкапов уже создан на локальном диске.',1);
+}
+
+// Проверяем, создан или нет каталог для ежедневного бэкапа. Если нет, то создаем.
+if (!is_dir($todayLocalFolder)) {
+    say(sprintf('Создаем каталог для ежедневного бэкапа %s на локальном диске.', $todayLocalFolder),1);
+    if (!mkdir($todayLocalFolder, 0777)) {
+         say('Не удалось создать каталог для ежедневного бэкапа на локальном диске.',1);
+         return;
+    } else {
+        say('Каталог для ежедневного бэкапа успешно создан.',1);
+    }    
+} else {
+    say(sprintf('Каталог для ежедневного бэкапа %s уже создан на локальном диске.', $todayLocalFolder),1);
+}
+
+    /*     Архивирование баз данных    */
+
+    $date = date('Y-m-d_H-i');
+    foreach ($databases as $db) {
+        $filename = "$todayLocalFolder/mysql_{$db['dbname']}_$date.sql.gz";
+        // f - force overwrite of output file and compress links
+        // 1 - compress faster
+        // 9 - compress better
+         // mysqldump  --opt - аккумулирует в себя сразу несколько опций
+        // (--add-drop-table, --add-locks, --all, --extended-insert, --quick, --lock-tables)
+        $cmd = "mysqldump --user={$db['login']} --password={$db['password']} --no-create-db --add-drop-table {$db['dbname']} | gzip -f -9 > $filename";
+say(sprintf($cmd, $out),1);     
+        exec($cmd, $out);
+     
+        if (!file_exists($filename) || filesize($filename) < 100) {
+             say(sprintf('Резервная копия БД %s не создана: %s', $db['dbname'], $out),1);
+        } else {
+            say(sprintf('Резервная копия БД %s успешно создана на локальном диске.', $db['dbname']),1);
+        }
+    }
+
+    
+    
+    foreach ($dirs as $dir) {
+        $filename = "$todayLocalFolder/files_{$dir['name']}_$date.tar.gz";
+        //c - создать архив,
+        //v - выводить информацию о процессе,
+        //z - использовать сжатие gzip,
+        //p - сохраняем данные о владельцах и правах доступа,
+        //f - пишем архив в файл
+        //P - don't strip leading `/'s from file names 
+        $cmd = "sudo ".$shellScript." -czpPf $filename {$dir['path']}";
+        //var_dump($cmd);
+        exec($cmd, $out);
+        //var_dump($op);
+        if (!file_exists($filename) || filesize($filename) < 100) {
+            say(sprintf('Резервная копия каталога %s не создана: %s', $dir['name'], $out),1);
+        } else {
+            say(sprintf('Резервная копия каталога %s успешно создана на локальном диске.', $dir['name']),1);
+        }
+    }
+
+say('Архивация данных на сервере закончена.', 1);
+    
+/* 
+    Копирование локального бэкапа в облако
+*/
+
+say('Начинаю копирование локального бэкапа в облако.', 1);
+
+say('Этап 2. Копирование локального бэкапа в облако.',1);
+
+// Создаем объект класса Yandex_Disk
+// Если токен еще не получен (не указан в конфиге), то запросим его.
+if( $yandexDiskConfig['token'] == '' ) {
+    $ynd = new Yandex_Disk($yandexDiskConfig);
+    $myToken = $ynd->getToken();
+    //echo "<br> Токен = ".$myToken." <br>";
+     //sg('YaDisk1.token', $myToken);
+     say(sprintf('Мой OAuth-токен: %s', $myToken),1);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка запроса OAuth-токена: %s', $ynd->error),1);
+    }
+}
+else $ynd = new Yandex_Disk($yandexDiskConfig);
+
+// Узнаем доступное место на Яндекс Диске (для справки)
+$req = $ynd->get();
+if( isset($req['error']) ) {
+     say(sprintf('Ошибка запроса метаинформации о диске: %s', $req['message']),1);
+ } else {
+    //Получаем свободное и занятое место
+    sg('YaDisk1.totalSpace', round(($req['total_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.usedSpace', round(($req['used_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.freeSpace', round(($req['total_space'] - $req['used_space']) / 1024 / 1024 / 1024, 2));
+      say(sprintf('Всего места на Яндекс.Диске: %s ГБ.', gg('YaDisk1.totalSpace')),1);
+      say(sprintf('Занято данными: %s ГБ.', gg('YaDisk1.usedSpace')),1);
+      say(sprintf('Свободно: %s ГБ.', gg('YaDisk1.freeSpace')),1);     
+ }
+
+// Проверяем, создан или нет общий каталог для бэкапов на Яндекс Диске. Если нет, то создаем.
+$req = $ynd->resources_get($cloudBackupFolder);
+if( isset($req['error']) || $req['path'] != 'disk:'.$cloudBackupFolder) {
+    say(sprintf('Создаем общий каталог %s на Яндекс.Диске.', $todayCloudFolder),1);
+    $req = $ynd->resources_put($cloudBackupFolder);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка создания общего каталога на Яндекс.Диск: %s', $ynd->error),1);
+     } else {
+        say('Общий каталог успешно создан.',1);
+     }    
+ } else {
+    say('Общий каталог для бэкапов уже создан на Яндекс.Диске.',1);
+ }
+ 
+// Если локальный каталог с архивами существует
+if (is_dir($todayLocalFolder)) {
+    // Узнаем содержимое каталога
+    $files = scandir($todayLocalFolder);
+    // Проверяем, создан или нет каталог для ежедневного бэкапа на Яндекс Диске. Если нет, то создаем.
+    $req = $ynd->resources_get($todayCloudFolder);
+    if( isset($req['error']) || $req['path'] != 'disk:'.$todayCloudFolder) {
+        say(sprintf('Создаем каталог для ежедневного бэкапа %s на Яндекс.Диске.', $todayCloudFolder),1);
+        $req = $ynd->resources_put($todayCloudFolder);
+        if( isset($ynd->error) ) {
+             say(sprintf('Ошибка создания каталога для ежедневного бэкапа на Яндекс.Диск: %s', $ynd->error),1);
+        } else {
+            say('Каталог для ежедневного бэкапа успешно создан.',1);    
+        }    
+    } else {
+        say(sprintf('Каталог для ежедневного бэкапа %s уже создан на Яндекс.Диске.', $todayCloudFolder),1);
+    }
+    
+    // Загрузим все файлы архивов на Яндекс Диск
+    foreach($files as $file) {
+        if(($file != ".") && ($file != "..")) {
+            if(is_file($todayLocalFolder."/".$file)) {
+                $fileCloudPath = $todayCloudFolder."/".$file;
+                $fileLocalPath = $todayLocalFolder."/".$file;
+                 // Если файл с таким же именем уже существует, то будет переписан.
+                say(sprintf('Загрузка на Яндекс.Диск: %s [%s Байт]', $file, filesize($fileLocalPath)),1);
+                 $req = $ynd->file_upload($fileCloudPath, $fileLocalPath);                 
+            }
+        }
+    }
+    
+}
+
+say('Копирование локального бэкапа в облако завершено.', 1);
+
+/* 
+    Ротация бэкапов на локальном диске и в облаке
+*/
+
+say('Начинаю ротацию резервных копий.', 1);
+
+say('Этап 3. Ротация бэкапов на локальном диске и в облаке.',1);
+
+    /*     Ротация бэкапов на локальном диске    */
+    
+    // Если локальный каталог с архивами существует
+    if (is_dir($localBackupFolder)) {
+        // Узнаем содержимое каталога
+        $req = scandir($localBackupFolder);
+        // Если каталог с архивами не пустой (не учитываем текущую '.' и родительскую '..' директории)
+        if ((count($req) - 2) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0, $j = 0; $i < count($req); $i++) {
+                if ((is_dir($localBackupFolder."/".$req[$i])) && ($req[$i] != ".") && ($req[$i] != "..")) {
+                    // Берем имя (путь) подкаталога и время создания
+                    $locallist[$j]['path'] = $localBackupFolder."/".$req[$i];
+                    $locallist[$j]['created'] = filemtime($localBackupFolder."/".$req[$i]);
+                    $j += 1;
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на локальном диске.', count($locallist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($locallist) > $numberOfLocalBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($locallist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($locallist, -$numberOfLocalBackups);
+                say(sprintf('Для удаления %s каталогов.', count($locallist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($locallist as $l) {
+                    removeDirectory($l['path']);
+                     say(sprintf('Каталог %s удален с локального диска.', $l['path']),1);
+                }        
+            } else {             
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+
+    }
+    
+    
+    /*     Ротация бэкапов на Яндекс Диске    */
+    
+    // Узнаем содержимое каталога
+    $req = $ynd->resources_get($cloudBackupFolder, '_embedded.path,_embedded.total,_embedded.items.name,_embedded.items.type,_embedded.items.path,_embedded.items.created');
+    if( isset($req['error']) ) {
+        say(sprintf('Ошибка запроса списка каталогов и файлов на Яндекс.Диск: %s', $req['message']),1);
+    } else {
+         // Если каталог с архивами не пустой
+        if (count($req['_embedded']['items']) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0; $i < count($req['_embedded']['items']); $i++) {
+                if ($req['_embedded']['items'][$i]['type'] == 'dir') {
+                    // Берем имя (путь) подкаталога и время создания
+                    $cloudlist[$i]['path'] = $req['_embedded']['items'][$i]['path'];
+                    $cloudlist[$i]['created'] = strtotime($req['_embedded']['items'][$i]['created']);
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на Яндекс.Диске.', count($cloudlist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($cloudlist) > $numberOfCloudBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($cloudlist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($cloudlist, -$numberOfCloudBackups);
+                say(sprintf('Для удаления %s каталогов.', count($cloudlist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($cloudlist as $l) {
+                    $req = $ynd->resources_delete($l['path'], false, true);
+                    if( isset($req['error']) ) {
+                        say(sprintf('Ошибка удаления каталога %s с Яндекс.Диск: %s', $l['path'], $req['message']),1);
+                    } else {             
+                         say(sprintf('Каталог %s удален с Яндекс.Диска.', $l['path']),1);
+                    }
+                }        
+            }
+            else {
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+    }
+
+say('Ротация резервных копий завершена.', 1);
+
+say('Завершение резервного копирования данных на сервере.',1); 
+
+sg('dailyBackup.last',$date );/* 
+*    Сценарий для ежедневного создания резервных копий БД и каталогов.
+*
+*    Архивы сохраняются на локальный диск и загружаются в облако (на Яндекс.Диск средствами REST API и OAuth-авторизации).
+*    Предусмотрена ротация архивных копий (хранится не более заданного числа архивов, остальные удаляются).
+*    На каждый ежедневный архив создается собственный каталог с именем вида "год-месяц-день", в который
+*    помещаются файлы с архивами БД и каталогов.
+*
+*    Для использования облачного хранилища Яндекс.Диск предварительно необходимо авторизоваться на Яндексе
+*    и создать приложение здесь https://oauth.yandex.ru/client/new (указать название приложения, дать все права 
+*    в разделе Яндекс.Диск REST API, в Callback URL подставить URL для разработки). В свойствах созданного приложения
+*    будут приведены ID и пароль приложения.
+*
+*    OAuth-токен можно получить вручную согласно этой инструкции https://tech.yandex.ru/oauth/doc/dg/tasks/get-oauth-token-docpage/
+*   Либо, оставив поле token в $yandexDiskConfig пустым, указать в этом сценарии свои логин и пароль для доступа к сервисам Яндекса,
+*   тогда токен будет запрашиваться у Яндекса при каждом запуске сценария. Рекомендую запросить токен таким образом однократно, а в 
+*    дальнейшем полученный токен указывать непосредственно в $yandexDiskConfig).
+*    
+*   Если имеется несколько учеток к Яндекс.Диск, то достаточно создать только одно приложение и указывать его ID и пароль при
+*   получении токена для другой учетки.
+*
+*/
+
+
+/* 
+    Конфигурация и параметры
+*/
+$numberOfCloudBackups = gg('dailyBackup.numberOfCloudBackups');    // количество хранимых бэкапов в облаке (в днях)
+$numberOfLocalBackups = gg('dailyBackup.numberOfLocalBackups');    // количество хранимых бэкапов локально (в днях)
+$cloudBackupFolder = gg('dailyBackup.cloudBackupFolder');        // каталог для бэкапов в облаке (например, /backups)
+$localBackupFolder = gg('dailyBackup.localBackupFolder');        // локальный каталог для бэкапов (например, /home/skysilver/backups)
+
+// Путь к вспомогательному shell-скрипту
+//     У пользователя www-data нет права чтения некоторых каталогов. Поэтому, чтобы была возможность такие
+//     каталоги архивировать, для запуска линуксовых команд используется shell-скрипт, который благодаря sudo
+//     может запускаться с правами root под пользователем www-data.
+//     Чтобы дать пользователю www-data возможность запускать этот скрипт от root,
+//     необходимо в /etc/sudoers добавить строку www-data ALL=(root) NOPASSWD: /путь_до_скрипта/backup.sh
+$shellScript = "/var/www/bak/backup.sh";
+
+// Определим путь к текущему (сегодняшнему) локальному каталогу и каталогу на Яндекс Диск
+$todayLocalFolder = $localBackupFolder."/".date('Y-m-d');
+$todayCloudFolder = $cloudBackupFolder."/".date('Y-m-d');
+
+// Архивируемые БД и реквизиты доступа к ним.
+$databases = [
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'db_terminal'],
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'mysql'],
+];
+
+// Архивируемые каталоги
+$dirs = [
+    ['name' => 'etc', 'path' => '/etc'],
+    ['name' => 'mysql', 'path' => '/var/lib/mysql'],
+    ['name' => 'logs', 'path' => '/var/log'],
+    ['name' => 'bin', 'path' => '/bin'], 
+    ['name' => 'boot', 'path' => '/boot'], 
+    ['name' => 'lib', 'path' => '/lib'],  
+    ['name' => 'www', 'path' => '/var/www'],
+];
+
+// Реквизиты доступа к Яндекс Диск
+// Если токен уже получен, то параметры app_id, app_secret, login и password можно не заполнять.
+// Если токена нет, то заполняем все поля, а поле token оставляем пустым (равным '').
+$yandexDiskConfig = [
+    'app_id' => gg('YaDisk1.app_id'),            // идентификатор приложения
+    'app_secret' => gg('YaDisk1.app_secret'),    // секретный ключ (пароль) приложения
+    'token' => gg('YaDisk1.token'),                // OAuth-токен
+    'login' => gg('YaDisk1.login'),                // логин пользователя
+    'password' => gg('YaDisk1.password'),        // пароль пользователя
+];
+
+// Писать логи ( 0-нет, 1-только критические, 2-все )
+$reclog = 1;
+
+// Т.к. архивирование и загрузка файлов в облако может занимать неопределенное время,
+// то снимем ограничение на время выполнения php-скрипта (по умолчанию в моем конфиге php.ini задано 90 секунд).
+set_time_limit(0);
+
+
+/* 
+    Оповещение
+*/
+
+say('Начинаю архивацию данных на сервере.', 1);
+
+say("Начало резервного копирования данных на сервере.",1);
+ 
+
+
+/* 
+    Архивация БД и каталогов сервера на локальный диск
+*/
+
+say('Этап 1. Архивация БД и каталогов сервера на локальный диск.',1);
+
+// Проверяем, создан или нет общий каталог для бэкапов. Если нет, то создаем.
+if (!is_dir($localBackupFolder)) {
+    say('Создаем общий каталог %s на локальном диске.', 1);
+    if (!mkdir($localBackupFolder, 0777)) {
+        say('Не удалось создать общий каталог на локальном диске.',1);
+         return;
+    } else {
+        say('Общий каталог успешно создан.',1);
+    }    
+} else {
+    say('Общий каталог для бэкапов уже создан на локальном диске.',1);
+}
+
+// Проверяем, создан или нет каталог для ежедневного бэкапа. Если нет, то создаем.
+if (!is_dir($todayLocalFolder)) {
+    say(sprintf('Создаем каталог для ежедневного бэкапа %s на локальном диске.', $todayLocalFolder),1);
+    if (!mkdir($todayLocalFolder, 0777)) {
+         say('Не удалось создать каталог для ежедневного бэкапа на локальном диске.',1);
+         return;
+    } else {
+        say('Каталог для ежедневного бэкапа успешно создан.',1);
+    }    
+} else {
+    say(sprintf('Каталог для ежедневного бэкапа %s уже создан на локальном диске.', $todayLocalFolder),1);
+}
+
+    /*     Архивирование баз данных    */
+
+    $date = date('Y-m-d_H-i');
+    foreach ($databases as $db) {
+        $filename = "$todayLocalFolder/mysql_{$db['dbname']}_$date.sql.gz";
+        // f - force overwrite of output file and compress links
+        // 1 - compress faster
+        // 9 - compress better
+         // mysqldump  --opt - аккумулирует в себя сразу несколько опций
+        // (--add-drop-table, --add-locks, --all, --extended-insert, --quick, --lock-tables)
+        $cmd = "mysqldump --user={$db['login']} --password={$db['password']} --no-create-db --add-drop-table {$db['dbname']} | gzip -f -9 > $filename";
+say(sprintf($cmd, $out),1);     
+        exec($cmd, $out);
+     
+        if (!file_exists($filename) || filesize($filename) < 100) {
+             say(sprintf('Резервная копия БД %s не создана: %s', $db['dbname'], $out),1);
+        } else {
+            say(sprintf('Резервная копия БД %s успешно создана на локальном диске.', $db['dbname']),1);
+        }
+    }
+
+    
+    
+    foreach ($dirs as $dir) {
+        $filename = "$todayLocalFolder/files_{$dir['name']}_$date.tar.gz";
+        //c - создать архив,
+        //v - выводить информацию о процессе,
+        //z - использовать сжатие gzip,
+        //p - сохраняем данные о владельцах и правах доступа,
+        //f - пишем архив в файл
+        //P - don't strip leading `/'s from file names 
+        $cmd = "sudo ".$shellScript." -czpPf $filename {$dir['path']}";
+        //var_dump($cmd);
+        exec($cmd, $out);
+        //var_dump($op);
+        if (!file_exists($filename) || filesize($filename) < 100) {
+            say(sprintf('Резервная копия каталога %s не создана: %s', $dir['name'], $out),1);
+        } else {
+            say(sprintf('Резервная копия каталога %s успешно создана на локальном диске.', $dir['name']),1);
+        }
+    }
+
+say('Архивация данных на сервере закончена.', 1);
+    
+/* 
+    Копирование локального бэкапа в облако
+*/
+
+say('Начинаю копирование локального бэкапа в облако.', 1);
+
+say('Этап 2. Копирование локального бэкапа в облако.',1);
+
+// Создаем объект класса Yandex_Disk
+// Если токен еще не получен (не указан в конфиге), то запросим его.
+if( $yandexDiskConfig['token'] == '' ) {
+    $ynd = new Yandex_Disk($yandexDiskConfig);
+    $myToken = $ynd->getToken();
+    //echo "<br> Токен = ".$myToken." <br>";
+     //sg('YaDisk1.token', $myToken);
+     say(sprintf('Мой OAuth-токен: %s', $myToken),1);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка запроса OAuth-токена: %s', $ynd->error),1);
+    }
+}
+else $ynd = new Yandex_Disk($yandexDiskConfig);
+
+// Узнаем доступное место на Яндекс Диске (для справки)
+$req = $ynd->get();
+if( isset($req['error']) ) {
+     say(sprintf('Ошибка запроса метаинформации о диске: %s', $req['message']),1);
+ } else {
+    //Получаем свободное и занятое место
+    sg('YaDisk1.totalSpace', round(($req['total_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.usedSpace', round(($req['used_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.freeSpace', round(($req['total_space'] - $req['used_space']) / 1024 / 1024 / 1024, 2));
+      say(sprintf('Всего места на Яндекс.Диске: %s ГБ.', gg('YaDisk1.totalSpace')),1);
+      say(sprintf('Занято данными: %s ГБ.', gg('YaDisk1.usedSpace')),1);
+      say(sprintf('Свободно: %s ГБ.', gg('YaDisk1.freeSpace')),1);     
+ }
+
+// Проверяем, создан или нет общий каталог для бэкапов на Яндекс Диске. Если нет, то создаем.
+$req = $ynd->resources_get($cloudBackupFolder);
+if( isset($req['error']) || $req['path'] != 'disk:'.$cloudBackupFolder) {
+    say(sprintf('Создаем общий каталог %s на Яндекс.Диске.', $todayCloudFolder),1);
+    $req = $ynd->resources_put($cloudBackupFolder);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка создания общего каталога на Яндекс.Диск: %s', $ynd->error),1);
+     } else {
+        say('Общий каталог успешно создан.',1);
+     }    
+ } else {
+    say('Общий каталог для бэкапов уже создан на Яндекс.Диске.',1);
+ }
+ 
+// Если локальный каталог с архивами существует
+if (is_dir($todayLocalFolder)) {
+    // Узнаем содержимое каталога
+    $files = scandir($todayLocalFolder);
+    // Проверяем, создан или нет каталог для ежедневного бэкапа на Яндекс Диске. Если нет, то создаем.
+    $req = $ynd->resources_get($todayCloudFolder);
+    if( isset($req['error']) || $req['path'] != 'disk:'.$todayCloudFolder) {
+        say(sprintf('Создаем каталог для ежедневного бэкапа %s на Яндекс.Диске.', $todayCloudFolder),1);
+        $req = $ynd->resources_put($todayCloudFolder);
+        if( isset($ynd->error) ) {
+             say(sprintf('Ошибка создания каталога для ежедневного бэкапа на Яндекс.Диск: %s', $ynd->error),1);
+        } else {
+            say('Каталог для ежедневного бэкапа успешно создан.',1);    
+        }    
+    } else {
+        say(sprintf('Каталог для ежедневного бэкапа %s уже создан на Яндекс.Диске.', $todayCloudFolder),1);
+    }
+    
+    // Загрузим все файлы архивов на Яндекс Диск
+    foreach($files as $file) {
+        if(($file != ".") && ($file != "..")) {
+            if(is_file($todayLocalFolder."/".$file)) {
+                $fileCloudPath = $todayCloudFolder."/".$file;
+                $fileLocalPath = $todayLocalFolder."/".$file;
+                 // Если файл с таким же именем уже существует, то будет переписан.
+                say(sprintf('Загрузка на Яндекс.Диск: %s [%s Байт]', $file, filesize($fileLocalPath)),1);
+                 $req = $ynd->file_upload($fileCloudPath, $fileLocalPath);                 
+            }
+        }
+    }
+    
+}
+
+say('Копирование локального бэкапа в облако завершено.', 1);
+
+/* 
+    Ротация бэкапов на локальном диске и в облаке
+*/
+
+say('Начинаю ротацию резервных копий.', 1);
+
+say('Этап 3. Ротация бэкапов на локальном диске и в облаке.',1);
+
+    /*     Ротация бэкапов на локальном диске    */
+    
+    // Если локальный каталог с архивами существует
+    if (is_dir($localBackupFolder)) {
+        // Узнаем содержимое каталога
+        $req = scandir($localBackupFolder);
+        // Если каталог с архивами не пустой (не учитываем текущую '.' и родительскую '..' директории)
+        if ((count($req) - 2) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0, $j = 0; $i < count($req); $i++) {
+                if ((is_dir($localBackupFolder."/".$req[$i])) && ($req[$i] != ".") && ($req[$i] != "..")) {
+                    // Берем имя (путь) подкаталога и время создания
+                    $locallist[$j]['path'] = $localBackupFolder."/".$req[$i];
+                    $locallist[$j]['created'] = filemtime($localBackupFolder."/".$req[$i]);
+                    $j += 1;
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на локальном диске.', count($locallist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($locallist) > $numberOfLocalBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($locallist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($locallist, -$numberOfLocalBackups);
+                say(sprintf('Для удаления %s каталогов.', count($locallist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($locallist as $l) {
+                    removeDirectory($l['path']);
+                     say(sprintf('Каталог %s удален с локального диска.', $l['path']),1);
+                }        
+            } else {             
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+
+    }
+    
+    
+    /*     Ротация бэкапов на Яндекс Диске    */
+    
+    // Узнаем содержимое каталога
+    $req = $ynd->resources_get($cloudBackupFolder, '_embedded.path,_embedded.total,_embedded.items.name,_embedded.items.type,_embedded.items.path,_embedded.items.created');
+    if( isset($req['error']) ) {
+        say(sprintf('Ошибка запроса списка каталогов и файлов на Яндекс.Диск: %s', $req['message']),1);
+    } else {
+         // Если каталог с архивами не пустой
+        if (count($req['_embedded']['items']) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0; $i < count($req['_embedded']['items']); $i++) {
+                if ($req['_embedded']['items'][$i]['type'] == 'dir') {
+                    // Берем имя (путь) подкаталога и время создания
+                    $cloudlist[$i]['path'] = $req['_embedded']['items'][$i]['path'];
+                    $cloudlist[$i]['created'] = strtotime($req['_embedded']['items'][$i]['created']);
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на Яндекс.Диске.', count($cloudlist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($cloudlist) > $numberOfCloudBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($cloudlist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($cloudlist, -$numberOfCloudBackups);
+                say(sprintf('Для удаления %s каталогов.', count($cloudlist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($cloudlist as $l) {
+                    $req = $ynd->resources_delete($l['path'], false, true);
+                    if( isset($req['error']) ) {
+                        say(sprintf('Ошибка удаления каталога %s с Яндекс.Диск: %s', $l['path'], $req['message']),1);
+                    } else {             
+                         say(sprintf('Каталог %s удален с Яндекс.Диска.', $l['path']),1);
+                    }
+                }        
+            }
+            else {
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+    }
+
+say('Ротация резервных копий завершена.', 1);
+
+say('Завершение резервного копирования данных на сервере.',1); 
+
+sg('dailyBackup.last',$date );/* 
+*    Сценарий для ежедневного создания резервных копий БД и каталогов.
+*
+*    Архивы сохраняются на локальный диск и загружаются в облако (на Яндекс.Диск средствами REST API и OAuth-авторизации).
+*    Предусмотрена ротация архивных копий (хранится не более заданного числа архивов, остальные удаляются).
+*    На каждый ежедневный архив создается собственный каталог с именем вида "год-месяц-день", в который
+*    помещаются файлы с архивами БД и каталогов.
+*
+*    Для использования облачного хранилища Яндекс.Диск предварительно необходимо авторизоваться на Яндексе
+*    и создать приложение здесь https://oauth.yandex.ru/client/new (указать название приложения, дать все права 
+*    в разделе Яндекс.Диск REST API, в Callback URL подставить URL для разработки). В свойствах созданного приложения
+*    будут приведены ID и пароль приложения.
+*
+*    OAuth-токен можно получить вручную согласно этой инструкции https://tech.yandex.ru/oauth/doc/dg/tasks/get-oauth-token-docpage/
+*   Либо, оставив поле token в $yandexDiskConfig пустым, указать в этом сценарии свои логин и пароль для доступа к сервисам Яндекса,
+*   тогда токен будет запрашиваться у Яндекса при каждом запуске сценария. Рекомендую запросить токен таким образом однократно, а в 
+*    дальнейшем полученный токен указывать непосредственно в $yandexDiskConfig).
+*    
+*   Если имеется несколько учеток к Яндекс.Диск, то достаточно создать только одно приложение и указывать его ID и пароль при
+*   получении токена для другой учетки.
+*
+*/
+
+
+/* 
+    Конфигурация и параметры
+*/
+$numberOfCloudBackups = gg('dailyBackup.numberOfCloudBackups');    // количество хранимых бэкапов в облаке (в днях)
+$numberOfLocalBackups = gg('dailyBackup.numberOfLocalBackups');    // количество хранимых бэкапов локально (в днях)
+$cloudBackupFolder = gg('dailyBackup.cloudBackupFolder');        // каталог для бэкапов в облаке (например, /backups)
+$localBackupFolder = gg('dailyBackup.localBackupFolder');        // локальный каталог для бэкапов (например, /home/skysilver/backups)
+
+// Путь к вспомогательному shell-скрипту
+//     У пользователя www-data нет права чтения некоторых каталогов. Поэтому, чтобы была возможность такие
+//     каталоги архивировать, для запуска линуксовых команд используется shell-скрипт, который благодаря sudo
+//     может запускаться с правами root под пользователем www-data.
+//     Чтобы дать пользователю www-data возможность запускать этот скрипт от root,
+//     необходимо в /etc/sudoers добавить строку www-data ALL=(root) NOPASSWD: /путь_до_скрипта/backup.sh
+$shellScript = "/var/www/bak/backup.sh";
+
+// Определим путь к текущему (сегодняшнему) локальному каталогу и каталогу на Яндекс Диск
+$todayLocalFolder = $localBackupFolder."/".date('Y-m-d');
+$todayCloudFolder = $cloudBackupFolder."/".date('Y-m-d');
+
+// Архивируемые БД и реквизиты доступа к ним.
+$databases = [
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'db_terminal'],
+    ['login' => gg('dailyBackup.mysqlUser'), 'password' => gg('dailyBackup.mysqlPassword'), 'dbname' => 'mysql'],
+];
+
+// Архивируемые каталоги
+$dirs = [
+    ['name' => 'etc', 'path' => '/etc'],
+    ['name' => 'mysql', 'path' => '/var/lib/mysql'],
+    ['name' => 'logs', 'path' => '/var/log'],
+    ['name' => 'bin', 'path' => '/bin'], 
+    ['name' => 'boot', 'path' => '/boot'], 
+    ['name' => 'lib', 'path' => '/lib'],  
+    ['name' => 'www', 'path' => '/var/www'],
+];
+
+// Реквизиты доступа к Яндекс Диск
+// Если токен уже получен, то параметры app_id, app_secret, login и password можно не заполнять.
+// Если токена нет, то заполняем все поля, а поле token оставляем пустым (равным '').
+$yandexDiskConfig = [
+    'app_id' => gg('YaDisk1.app_id'),            // идентификатор приложения
+    'app_secret' => gg('YaDisk1.app_secret'),    // секретный ключ (пароль) приложения
+    'token' => gg('YaDisk1.token'),                // OAuth-токен
+    'login' => gg('YaDisk1.login'),                // логин пользователя
+    'password' => gg('YaDisk1.password'),        // пароль пользователя
+];
+
+// Писать логи ( 0-нет, 1-только критические, 2-все )
+$reclog = 1;
+
+// Т.к. архивирование и загрузка файлов в облако может занимать неопределенное время,
+// то снимем ограничение на время выполнения php-скрипта (по умолчанию в моем конфиге php.ini задано 90 секунд).
+set_time_limit(0);
+
+
+/* 
+    Оповещение
+*/
+
+say('Начинаю архивацию данных на сервере.', 1);
+
+say("Начало резервного копирования данных на сервере.",1);
+ 
+
+
+/* 
+    Архивация БД и каталогов сервера на локальный диск
+*/
+
+say('Этап 1. Архивация БД и каталогов сервера на локальный диск.',1);
+
+// Проверяем, создан или нет общий каталог для бэкапов. Если нет, то создаем.
+if (!is_dir($localBackupFolder)) {
+    say('Создаем общий каталог %s на локальном диске.', 1);
+    if (!mkdir($localBackupFolder, 0777)) {
+        say('Не удалось создать общий каталог на локальном диске.',1);
+         return;
+    } else {
+        say('Общий каталог успешно создан.',1);
+    }    
+} else {
+    say('Общий каталог для бэкапов уже создан на локальном диске.',1);
+}
+
+// Проверяем, создан или нет каталог для ежедневного бэкапа. Если нет, то создаем.
+if (!is_dir($todayLocalFolder)) {
+    say(sprintf('Создаем каталог для ежедневного бэкапа %s на локальном диске.', $todayLocalFolder),1);
+    if (!mkdir($todayLocalFolder, 0777)) {
+         say('Не удалось создать каталог для ежедневного бэкапа на локальном диске.',1);
+         return;
+    } else {
+        say('Каталог для ежедневного бэкапа успешно создан.',1);
+    }    
+} else {
+    say(sprintf('Каталог для ежедневного бэкапа %s уже создан на локальном диске.', $todayLocalFolder),1);
+}
+
+    /*     Архивирование баз данных    */
+
+    $date = date('Y-m-d_H-i');
+    foreach ($databases as $db) {
+        $filename = "$todayLocalFolder/mysql_{$db['dbname']}_$date.sql.gz";
+        // f - force overwrite of output file and compress links
+        // 1 - compress faster
+        // 9 - compress better
+         // mysqldump  --opt - аккумулирует в себя сразу несколько опций
+        // (--add-drop-table, --add-locks, --all, --extended-insert, --quick, --lock-tables)
+        $cmd = "mysqldump --user={$db['login']} --password={$db['password']} --no-create-db --add-drop-table {$db['dbname']} | gzip -f -9 > $filename";
+say(sprintf($cmd, $out),1);     
+        exec($cmd, $out);
+     
+        if (!file_exists($filename) || filesize($filename) < 100) {
+             say(sprintf('Резервная копия БД %s не создана: %s', $db['dbname'], $out),1);
+        } else {
+            say(sprintf('Резервная копия БД %s успешно создана на локальном диске.', $db['dbname']),1);
+        }
+    }
+
+    
+    
+    foreach ($dirs as $dir) {
+        $filename = "$todayLocalFolder/files_{$dir['name']}_$date.tar.gz";
+        //c - создать архив,
+        //v - выводить информацию о процессе,
+        //z - использовать сжатие gzip,
+        //p - сохраняем данные о владельцах и правах доступа,
+        //f - пишем архив в файл
+        //P - don't strip leading `/'s from file names 
+        $cmd = "sudo ".$shellScript." -czpPf $filename {$dir['path']}";
+        //var_dump($cmd);
+        exec($cmd, $out);
+        //var_dump($op);
+        if (!file_exists($filename) || filesize($filename) < 100) {
+            say(sprintf('Резервная копия каталога %s не создана: %s', $dir['name'], $out),1);
+        } else {
+            say(sprintf('Резервная копия каталога %s успешно создана на локальном диске.', $dir['name']),1);
+        }
+    }
+
+say('Архивация данных на сервере закончена.', 1);
+    
+/* 
+    Копирование локального бэкапа в облако
+*/
+
+say('Начинаю копирование локального бэкапа в облако.', 1);
+
+say('Этап 2. Копирование локального бэкапа в облако.',1);
+
+// Создаем объект класса Yandex_Disk
+// Если токен еще не получен (не указан в конфиге), то запросим его.
+if( $yandexDiskConfig['token'] == '' ) {
+    $ynd = new Yandex_Disk($yandexDiskConfig);
+    $myToken = $ynd->getToken();
+    //echo "<br> Токен = ".$myToken." <br>";
+     //sg('YaDisk1.token', $myToken);
+     say(sprintf('Мой OAuth-токен: %s', $myToken),1);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка запроса OAuth-токена: %s', $ynd->error),1);
+    }
+}
+else $ynd = new Yandex_Disk($yandexDiskConfig);
+
+// Узнаем доступное место на Яндекс Диске (для справки)
+$req = $ynd->get();
+if( isset($req['error']) ) {
+     say(sprintf('Ошибка запроса метаинформации о диске: %s', $req['message']),1);
+ } else {
+    //Получаем свободное и занятое место
+    sg('YaDisk1.totalSpace', round(($req['total_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.usedSpace', round(($req['used_space']) / 1024 / 1024 / 1024, 2));
+      sg('YaDisk1.freeSpace', round(($req['total_space'] - $req['used_space']) / 1024 / 1024 / 1024, 2));
+      say(sprintf('Всего места на Яндекс.Диске: %s ГБ.', gg('YaDisk1.totalSpace')),1);
+      say(sprintf('Занято данными: %s ГБ.', gg('YaDisk1.usedSpace')),1);
+      say(sprintf('Свободно: %s ГБ.', gg('YaDisk1.freeSpace')),1);     
+ }
+
+// Проверяем, создан или нет общий каталог для бэкапов на Яндекс Диске. Если нет, то создаем.
+$req = $ynd->resources_get($cloudBackupFolder);
+if( isset($req['error']) || $req['path'] != 'disk:'.$cloudBackupFolder) {
+    say(sprintf('Создаем общий каталог %s на Яндекс.Диске.', $todayCloudFolder),1);
+    $req = $ynd->resources_put($cloudBackupFolder);
+    if( isset($ynd->error) ) {
+         say(sprintf('Ошибка создания общего каталога на Яндекс.Диск: %s', $ynd->error),1);
+     } else {
+        say('Общий каталог успешно создан.',1);
+     }    
+ } else {
+    say('Общий каталог для бэкапов уже создан на Яндекс.Диске.',1);
+ }
+ 
+// Если локальный каталог с архивами существует
+if (is_dir($todayLocalFolder)) {
+    // Узнаем содержимое каталога
+    $files = scandir($todayLocalFolder);
+    // Проверяем, создан или нет каталог для ежедневного бэкапа на Яндекс Диске. Если нет, то создаем.
+    $req = $ynd->resources_get($todayCloudFolder);
+    if( isset($req['error']) || $req['path'] != 'disk:'.$todayCloudFolder) {
+        say(sprintf('Создаем каталог для ежедневного бэкапа %s на Яндекс.Диске.', $todayCloudFolder),1);
+        $req = $ynd->resources_put($todayCloudFolder);
+        if( isset($ynd->error) ) {
+             say(sprintf('Ошибка создания каталога для ежедневного бэкапа на Яндекс.Диск: %s', $ynd->error),1);
+        } else {
+            say('Каталог для ежедневного бэкапа успешно создан.',1);    
+        }    
+    } else {
+        say(sprintf('Каталог для ежедневного бэкапа %s уже создан на Яндекс.Диске.', $todayCloudFolder),1);
+    }
+    
+    // Загрузим все файлы архивов на Яндекс Диск
+    foreach($files as $file) {
+        if(($file != ".") && ($file != "..")) {
+            if(is_file($todayLocalFolder."/".$file)) {
+                $fileCloudPath = $todayCloudFolder."/".$file;
+                $fileLocalPath = $todayLocalFolder."/".$file;
+                 // Если файл с таким же именем уже существует, то будет переписан.
+                say(sprintf('Загрузка на Яндекс.Диск: %s [%s Байт]', $file, filesize($fileLocalPath)),1);
+                 $req = $ynd->file_upload($fileCloudPath, $fileLocalPath);                 
+            }
+        }
+    }
+    
+}
+
+say('Копирование локального бэкапа в облако завершено.', 1);
+
+/* 
+    Ротация бэкапов на локальном диске и в облаке
+*/
+
+say('Начинаю ротацию резервных копий.', 1);
+
+say('Этап 3. Ротация бэкапов на локальном диске и в облаке.',1);
+
+    /*     Ротация бэкапов на локальном диске    */
+    
+    // Если локальный каталог с архивами существует
+    if (is_dir($localBackupFolder)) {
+        // Узнаем содержимое каталога
+        $req = scandir($localBackupFolder);
+        // Если каталог с архивами не пустой (не учитываем текущую '.' и родительскую '..' директории)
+        if ((count($req) - 2) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0, $j = 0; $i < count($req); $i++) {
+                if ((is_dir($localBackupFolder."/".$req[$i])) && ($req[$i] != ".") && ($req[$i] != "..")) {
+                    // Берем имя (путь) подкаталога и время создания
+                    $locallist[$j]['path'] = $localBackupFolder."/".$req[$i];
+                    $locallist[$j]['created'] = filemtime($localBackupFolder."/".$req[$i]);
+                    $j += 1;
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на локальном диске.', count($locallist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($locallist) > $numberOfLocalBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($locallist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($locallist, -$numberOfLocalBackups);
+                say(sprintf('Для удаления %s каталогов.', count($locallist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($locallist as $l) {
+                    removeDirectory($l['path']);
+                     say(sprintf('Каталог %s удален с локального диска.', $l['path']),1);
+                }        
+            } else {             
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+
+    }
+    
+    
+    /*     Ротация бэкапов на Яндекс Диске    */
+    
+    // Узнаем содержимое каталога
+    $req = $ynd->resources_get($cloudBackupFolder, '_embedded.path,_embedded.total,_embedded.items.name,_embedded.items.type,_embedded.items.path,_embedded.items.created');
+    if( isset($req['error']) ) {
+        say(sprintf('Ошибка запроса списка каталогов и файлов на Яндекс.Диск: %s', $req['message']),1);
+    } else {
+         // Если каталог с архивами не пустой
+        if (count($req['_embedded']['items']) != 0) {
+            // Составим список всех подкаталогов
+            for ($i = 0; $i < count($req['_embedded']['items']); $i++) {
+                if ($req['_embedded']['items'][$i]['type'] == 'dir') {
+                    // Берем имя (путь) подкаталога и время создания
+                    $cloudlist[$i]['path'] = $req['_embedded']['items'][$i]['path'];
+                    $cloudlist[$i]['created'] = strtotime($req['_embedded']['items'][$i]['created']);
+                }    
+            }
+            say(sprintf('Найдено %s каталогов на Яндекс.Диске.', count($cloudlist)),1);
+            // Если архивов больше, чем требуется, то удалим часть старых.
+            if (count($cloudlist) > $numberOfCloudBackups) {
+                say('Архивов больше, чем требуется. Удалим часть старых.',1);
+                // Отсортируем по дате создания
+                arraySort($cloudlist, 'created');
+                // Исключим из удаляемых нужное количество "свежих" архивов 
+                array_splice($cloudlist, -$numberOfCloudBackups);
+                say(sprintf('Для удаления %s каталогов.', count($cloudlist)),1);
+                // Удалим старые каталоги с архивами из облака
+                foreach($cloudlist as $l) {
+                    $req = $ynd->resources_delete($l['path'], false, true);
+                    if( isset($req['error']) ) {
+                        say(sprintf('Ошибка удаления каталога %s с Яндекс.Диск: %s', $l['path'], $req['message']),1);
+                    } else {             
+                         say(sprintf('Каталог %s удален с Яндекс.Диска.', $l['path']),1);
+                    }
+                }        
+            }
+            else {
+                say('Архивов меньше (или равно) требуемого количества. Ничего не удаляем.',1);
+            }
+        }
+    }
+
+say('Ротация резервных копий завершена.', 1);
+
+say('Завершение резервного копирования данных на сервере.',1); 
+
+sg('dailyBackup.last',$date );

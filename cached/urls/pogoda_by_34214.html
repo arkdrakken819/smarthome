@@ -1,0 +1,873 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ru">
+<head>
+
+	<meta name="author" content="Belov Alexandr,Bychenkov Alexandr, Povazhnaja Svetlana" />
+	<meta name="robots" content="index, all" />
+	<meta name="document-state" content="dynamic" />
+	<meta http-equiv="Cache-Control" content="max-age=7200, must-revalidate" />
+	<meta name="generator" content="Art.Scene.Design [v.4.5]" />
+	<meta name="Copyright" content="2008-2017, Art.Scene.Design" />
+	<meta http-equiv="content-type" content="text/html; charset=Windows-1251" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.75">
+	<meta name="keywords" content="Белгород погода, прогноз погоды, метеопрогноз, Россия, географические координаты, магнитная буря, УФ-индекс, восход и заход Солнца время, астероид, Asteroids" />
+	<meta name="description" content="Погодный сервер. Прогноз погоды в Белгороде, Россия на 3 дня. Карты погоды и метеограммы, температура моря, штормпредупреждения и метеоновости. Метеорологические карты. Опасные астероиды" />
+	<meta name="classification" content="Справки. Погода. Россия. Погода в Белгороде текущая и прогноз погоды на 3 дня" />
+	<meta name="category" content="Справки. Прогноз погоды. Температура моря на курортах. Погода. Метеообстановка в аэропортах. Магнитные бури. Солнечные вспышки. Опасные Астероиды." />
+ 	<title>POGODA.BY | Погода Белгород, Россия — прогноз погоды на 3 дня | Белгидромет</title>
+
+	<link rel="stylesheet" href="tpl/menu/style-4.0.css" type="text/css" />
+	<link rel="stylesheet" href="tpl/css/main.css" type="text/css" />
+	<link rel="stylesheet" href="tpl/css/link.css" type="text/css" />
+	<script type="text/javascript" src="tpl/menu/drop_down.js"></script>
+
+
+
+ <link rel="stylesheet" href="tpl/css/I.css" type="text/css">
+
+<!--[if IE]>
+<style type="text/css">
+div#cover{width:expression(((document.compatMode && document.compatMode=='CSS1Compat') ? document.documentElement.clientWidth : document.body.clientWidth) < 1140 ? "1140px" : "auto");}
+</style>
+<![endif]-->
+
+<script type="text/javascript">
+<!--
+	if (window.attachEvent){
+	window.attachEvent('onresize',center);
+	window.attachEvent('onload',center);
+	}else if(window.addEventListener){
+	window.addEventListener('resize',center, false);
+	window.addEventListener('load',center, false);
+	}
+	function center(){
+	var i = document.getElementById('cover');
+	i.style.marginLeft = parseInt(document.body.offsetWidth-i.offsetWidth)/2+'px';
+	};
+-->
+</script><script type="text/javascript">
+function getposOffset(overlay, offsettype){
+		var totaloffset=(offsettype=="left")? overlay.offsetLeft : overlay.offsetTop;
+		var parentEl=overlay.offsetParent;
+		while (parentEl!=null){
+		totaloffset=(offsettype=="left")? totaloffset+parentEl.offsetLeft : totaloffset+parentEl.offsetTop;
+		parentEl=parentEl.offsetParent;
+}
+return totaloffset;
+}
+
+function overlay(curobj, subobj){
+if (document.getElementById){
+var subobj=document.getElementById(subobj)
+subobj.style.left=getposOffset(curobj, "left")+"px"
+subobj.style.top=getposOffset(curobj, "top")+"px"
+subobj.style.display="block"
+return false
+}else{
+return true
+}
+}
+
+function overlayclose(subobj){
+document.getElementById(subobj).style.display="none"
+}
+</script>
+
+<script type="text/javascript" src="search/search.js"></script>
+
+<script type="text/javascript">
+function on_ENTER(){
+        if (SearchEngine != null){
+        SearchEngine.Execute(document.search.request.value);
+        }
+        return false;
+}
+</script>
+<link rel="stylesheet" href="tpl/menu/citymenu.css" type="text/css">
+<link rel='shortcut icon' href='/favicon.ico' type='image/x-icon'>
+
+<link rel="alternate" type="application/rss+xml" title="POGODA.BY | Штормпредупреждения по Беларуси" href="rss2/storm.php">
+<link rel="alternate" type="application/rss+xml" title="POGODA.BY | Метеоновости" href="rss2/rss_pogoda.by.php">
+</head>
+
+<!-- body -->
+<body>
+<!-- место №1  -->
+<div style="margin:0; padding:0; text-align:center; border:solid; border-width: 0 0 1px 0; border-color: #474867;">
+</div>
+
+<!--колонтитул верхний-->
+	<div id="header">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0">
+	<tr>
+	<td width="5%"> </td>
+	<td width="60%" valign="top"><a href="/34214" title="POGODA.BY | Tantum possumus, quantum scimus — Мы можем столько, сколько мы знаем. Ф.Бэкон."><img src="tpl/img/logo2-4.5.gif" alt="POGODA.BY. Погода на 3 дня в Белгороде" border="0"></a></td>
+	<td width="35%" valign="top"><a href="http://hmc.by/" target="_blank"><img src="tpl/img/logo-Belgidromet.gif" alt= "Belgidromet" align="left" border="0"></a><small><img src='tpl/ico/clock-small.gif' alt='Белгород, время местное'>Время в Минске 21:10 ч. 22 ноября 2017<br><img src='tpl/ico/clock-small.gif' alt='время ГМТ'>Время UTC 18:10 ч<br>
+	<img src="tpl/ico/mail-small.png" alt= "Е-почта" border="0"><small><acronym title="Контакты"><a href="/about/">Контакты</a></acronym></small><br>
+	<a style='border-bottom: 1px dotted;' href="/"><img src="tpl/ico/home-small.png" alt= "в Белгороде" border="0"></a>
+	&#8594; Белгород &#8594; <acronym title="Погода Белгород"><a target="_blank" href="/pda/?city=34214">в мобильном</a></acronym></small>
+
+	</td>
+	</tr>
+	</table>
+	</div>
+<!--меню-->
+<div id="top">
+<table border="0" cellspacing="0" cellpadding="0" align="center" width="900">
+<tr>
+<td width="18%">
+
+<ul id="M1">
+<li><a href='#' style="cursor:default; color:white;"><u><b>ИНФОРМАЦИЯ</b></u></a>
+	<ul style="visibility: visible">
+		<li>
+		<a href='/news/'>Метеоновости</a>		</li>
+
+		<li>
+		<a href='/press-release/'>Публикации</a>		</li>
+
+		<li>
+		<a href='/glossary/'>Метеословарь</a>		</li>
+
+		<li>
+		<a href='/315/gid.html'>Гидрография рек РБ</a>		</li>
+
+  		<li>
+		<a href='/meteorecords/'>Метеорекорды</a>		</li>
+
+		<li>
+		<a href='/climat-directory/'>Справочник по климату</a>		</li>
+	</ul>
+</li>
+</ul>
+</td>
+
+<td width="18%">
+<ul id="M2">
+<li><a href='#' style="cursor: default; color:white;"><u><b>КАРТЫ ПОГОДЫ</b></u></a>
+	<ul style="visibility: visible">
+ 		<li>
+		<a href='/flmaps/'>Интерактивные карты</a>		</li>
+
+		<li>
+		<a href='/thumbnails/'>Карты погоды</a>		</li>
+
+         <li>
+		<a href='/eumetsat/'>Спутниковые снимки</a>		</li>
+
+		<li>
+		<a href='/thumbnails/?map=radar_map'>Радарные карты</a>		</li>
+
+		<li>
+		<a href='/mg/?city=34214'>Графики погоды</a>		</li>
+
+        <li>
+		<a href='/hchart/34214'>Метеограмма Белгород</a>		</li>
+
+		<li>
+		<a href='http://wrf.pogoda.by/wrf/anima/' target='_blank'>Карты модели WRF</a>		</li>
+
+
+  	</ul>
+</li>
+</ul>
+</td>
+
+<td width="18%">
+<ul id="M3">
+<li><a href='#' style="cursor:default; color:white;"><u><b>НАБЛЮДЕНИЯ</b></u></a>
+	<ul style="visibility:visible">
+
+			<li>
+			<a href='/meteoarchive/'>Метеонаблюдения</a>			</li>
+
+			<li>
+			<a href='/badweather/'>Штормовые сообщения</a>			</li>
+
+            <li>
+			<a href='/avia/'>Погода в аэропортах</a>			</li>
+
+			<li>
+			<a href='/gidroarchive/'>Гидрология </a>			</li>
+
+			<li>
+			<a href='/gidro/'>Температура моря</a>			</li>
+
+			<li>
+			<a href='/uv-gw/geo.php'>Геомагнитная обстановка</a>			</li>
+
+			<li>
+			<a href='/pmsw/'>Солнечная активность</a>			</li>
+
+			<li>
+			<a href='/pha/'>Опасные астероиды</a>			</li>
+
+
+	</ul>
+</li>
+</ul>
+</td>
+
+<td width="18%">
+<ul id="M4">
+<li><a href='#' style="cursor:default; color:white;"><u><b>СЕРВИСЫ</b></u></a>
+	<ul style="visibility: visible">
+
+				<li>
+				<a href='/xml2/'>Информация в XML</a>				</li>
+
+				<li>
+				<a href='/rss2/'>RSS-ленты погоды</a>				</li>
+
+				<li>
+				<a href='/meteoinformer/'>Информеры погоды</a>				</li>
+
+				<!-- <li>
+				<a href='/zip/'>Архив метеонаблюдений</a>				</li> -->
+
+				<li>
+				<a href='/zip-avia/'>Архив авиапогоды</a>				</li>
+
+				<li>
+				<a href='/315/arch_gw.php'>Архив геомагнитный</a>				</li>
+	</ul>
+</li>
+</ul>
+</td>
+
+<td width="18%">
+<ul id="M5">
+<li><a href='#' style="cursor:default; color:white;"><u><b>POGODA.BY</b></u></a>
+<ul style="visibility: visible">
+
+				<li>
+				<a href='/about/'>О сайте</a>				</li>
+
+				<li>
+				<a href='/banners/'>Реклама на POGODA.BY</a>				</li>
+
+				<li>
+				<a href='/search/'>Список городов</a>				</li>
+
+				<li>
+				<a href='http://6.pogoda.by/34214'>Погода в Белгороде на 6 дней</a>				</li>
+
+				<li>
+				<a href='http://pda.pogoda.by/?city=34214'>Погода в мобильном</a>				</li>
+
+        <li>
+        <a href='http://6.pogoda.by/3h/34214'>Прогноз на 6 дней GFS</a>        </li>
+
+	</ul>
+ </li>
+</ul>
+</td>
+<td nowrap width="10%">&nbsp;</td>
+</tr>
+</table></div>
+
+<!--серединка 1400 -->
+<div id="cover">
+<!-- баннер №2 -->
+<!-- баннер №2 конец -->
+
+
+<div style="background: url(tpl/img/downpanel.gif) bottom repeat-x;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="src">
+<tr>
+<td valign="top">
+<!-- если есть фактическая погода. если нет, то ближайшие -->
+<h2>Фактическая погода</h2>
+<p>
+<strong>Белгород</strong> <a href='/avia/?icao=UUOB'><img title='Данные аэропорта' src='6/pict-40/14-plane.gif' width='14' height='15' border='0'></a> за 17:30 <span class="utc" title="Время по UTC. Местное время = UTC+ ваш часовой пояс">UTC</span><br>Температура воздуха -1°C<br>Ветер 5 м/с,  западный<br>Переменная облачность <br>Видимость 10.0 км<br>Давление 1011 гПа <font color='#999999'>[758 мм]</font></p>
+</td>
+
+<td width="1%" style="background: url(/tpl/img/brd.gif) repeat-y;"><img src="/tpl/img/brd.gif" alt=""></td>
+<td valign="top">
+<h2>Географические координаты</h2>
+<p>
+<strong>Белгород</strong>: 50.60&deg; с.ш. и 36.60&deg;  в.д.</p>
+<p>Часовой пояс <strong>Белгород</strong>: <span class='utc' title='время по Гринвичу'>UTC</span> +3 ч</p>
+<p style='margin-bottom:10px;'><b>Белгород</b> на карте <script type='text/javascript'>document.write('<a href=https://maps.google.com/maps?ll=50.600000,36.600000&z=13&q=%D0%91%D0%B5%D0%BB%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%2C+%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F&output=classic&dg=ntvb target=_blank>Google Maps</a>'); </script><br><script type='text/javascript'>document.write('<a href=http://www.wikimapia.org/#lat=50.600000&lon=36.600000&z=13&m=h target=_blank>WikiMapia</a>'); </script><br></p>
+<!-- Партнёрка -->
+<p class = "redlink"></p>
+</td>
+
+
+<td width="1%" style="background: url(/tpl/img/brd.gif) repeat-y;"><img src="/tpl/img/brd.gif" alt=""></td>
+<td valign="top"><h2>Астрономия</h2>
+<p><strong>Восход и заход Солнца в Белгороде</strong><br>
+Восход: 08:04,&nbsp; заход: 16:34 [местное]</p>
+<p><strong>Сумерки гражданские</strong><br>
+Начало: 07:21,&nbsp; конец: 17:18</p>
+<p><strong>Луна</strong>: растущая
+<br>Освещенность диска 16.8%
+ </p>
+</td>
+<td width="1%" style="background: url(/tpl/img/brd.gif) repeat-y;"><img src="/tpl/img/brd.gif" alt=""></td>
+
+<td valign="top">
+<h2>Магнитные бури</h2>
+<p>Сегодня,  в 15:00 <span class="utc" title="Время по UTC. Местное время = UTC + ваш часовой пояс">UTC</span><br>
+<strong>Геомагнитный фон</strong>: <span title="Kp-индекс 3">слабовозмущенный</span><br></p>
+<p>В 17:58 <span class='utc' title='Время по UTC. Местное время = UTC + ваш часовой пояс'>UTC</span><br>Скорость солнечного ветра: 446.5 км/с<br>Температура плазмы: 82200 K<br>Плотность протонов 3.9 p/см&#179;</p>
+</td>
+</tr>
+</table>
+</div>
+
+<!-- место №3 -->
+<div class="promo">
+</div>
+
+
+<!--Меню города и разделы сайта -->
+<table width="100%" class="src" border="0" cellspacing="0" cellpadding="0"><tr>
+<td width="61%">
+	<table width='*' border='0' style="margin-top: 0px"><tr>
+	<td><h1>Прогноз погоды <font color='red'>Белгород</font>, Россия</h1>
+</td>
+	<td><div class="search_result" id="result"></div></td>
+	<td nowrap>
+		<form style="margin: 0px 0px 0px 10px" name="search" onsubmit="javascript:return(on_ENTER());">
+		<input class="form" name="request" type="text" maxlength="68" title="Ввести город или индекс ВМО"> <input class="btn" type="submit" value="Найти">
+		</form>
+	</td>
+	<td>
+		<H6 id="M6">
+		<li><a href='#' style='cursor:default' title='Города РФ'> <acronym title='города'>Города РФ</acronym></a>
+		<ol><li>
+<!--[if lt IE 7]><p style='margin:0;'>&nbsp;</p><![endif]-->
+<table class="menu" width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF">
+  <tr>
+    <td class=sr><a href=/37001>Анапа</a></td>
+    <td class=sr><a href=/26702>Калининград</a></td>
+    <td class=sr nowrap><a href=/27459>Нижний Новгород</a></td>
+    <td class=sr><a href=/26781>Смоленск</a></td>
+    <td class=sl><a href=/17128><b>Анкара</b>&nbsp;<img src="/tpl/img/sh.gif" title= "Больше городов" border="0" width="9" height="10"></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/22550>Архангельск</a></td>
+    <td class=sr><a href=/27703>Калуга</a></td>
+    <td class=sr><a href=/23205>Нарьян-Мар</a></td>
+    <td class=sr><a href=/37099>Сочи</a></td>
+    <td class=sl><a href=/10385><b>Берлин</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/34214>Белгород</a></td>
+    <td class=sr><a href=/27627>Кашира</a></td>
+    <td class=sr><a href=/26179>Новгород</a></td>
+    <td class=sr nowrap><a href=/26063>Санкт-Петербург</a></td>
+    <td class=sl><a href=/12375><b>Варшава</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/26898>Брянск</a></td>
+    <td class=sr><a href=/27199>Киров</a></td>
+    <td class=sr><a href=/27906>Орёл</a></td>
+    <td class=sr nowrap><a href=/34116 title='Старый Оскол'>Старый Оскол</a></td>
+    <td class=sl><a href=/26730><b>Вильнюс</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr nowrap><a href=/26477 title='Великие Луки'>Великие Луки</a></td>
+    <td class=sr><a href=/27417>Клин</a></td>
+    <td class=sr><a href=/22820>Петрозаводск</a></td>
+    <td class=sr><a href=/23804>Сыктывкар</a></td>
+    <td class=sl><a href=/33345><b>Киев</b>&nbsp;<img src="/tpl/img/sh.gif" title= "Больше украинских городов" border="0" width="9" height="10"></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href='/27532'>Владимир</a></td>
+    <td class=sr><a href=/27418>Конаково</a></td>
+    <td class=sr><a href=/27617>Подольск</a></td>
+    <td class=sr><a href=/27947>Тамбов</a></td>
+    <td class=sl><a href=/33815><b>Кишинёв</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/27037>Вологда</a></td>
+    <td class=sr><a href=/27333>Кострома</a></td>
+    <td class=sr><a href=/26258>Псков</a></td>
+    <td class=sr><a href=/27402>Тверь</a></td>
+    <td class=sl><a href=/3772><b>Лондон</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/34123>Воронеж</a></td>
+    <td class=sr><a href=/34929>Краснодар</a></td>
+    <td class=sr nowrap><a href=/27329>Ростов Великий</a></td>
+    <td class=sr><a href=/27401>Торжок</a></td>
+    <td class=sl><a href=/26850><b>Минск</b>&nbsp;<img src="/tpl/img/sh.gif" title= "Больше белорусских городов" border="0" width="9" height="10"></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/26695>Вязьма</a></td>
+    <td class=sr><a href=/34009>Курск</a></td>
+    <td class=sr nowrap><a href=/34730>Ростов-на-Дону</a></td>
+    <td class=sr><a href=/27719>Тула</a></td>
+    <td class=sl><a href=/7149><b>Париж</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/26732>Демидов</a></td>
+    <td class=sr><a href=/27930>Липецк</a></td>
+    <td class=sr><a href=/27225>Рыбинск</a></td>
+    <td class=sr><a href=/27606>Химки</a></td>
+    <td class=sl><a href=/26422><b>Рига</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/27419>Дмитров</a></td>
+    <td class=sr><a href=/27509>Можайск</a></td>
+    <td class=sr><a href=/27730>Рязань</a></td>
+    <td class=sr><a href=/27581>Чебоксары</a></td>
+    <td class=sl><a href=/16242><b>Рим</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/27613>Домодедово</a></td>
+    <td class=sr><a href=/27612><acronym title='столица России'><b>Москва</b></acronym></a></td>
+    <td class=sr><a href=/26686>Сафоново</a></td>
+    <td class=sr><a href=/27534>Электросталь</a></td>
+    <td class=sl><a href=/26038><b>Таллин</b></a></td>
+  </tr>
+  <tr>
+    <td class=sr><a href=/27595>Казань</a></td>
+    <td class=sr><a href=/22113>Мурманск</a></td>
+    <td class=sr><a href=/27618>Серпухов</a></td>
+    <td class=sr><a href=/27331>Ярославль</a></td>
+    <td class=sl><a href=/2974><b>Хельсинки</b></a></td>
+  </tr>
+</table>
+</ol></li>
+        </H6>
+	</td>
+	<td></td>
+	</tr>
+	</table>
+</td>
+
+<!--разделы -->
+<td width="1%" style="background: url(/tpl/img/brd.gif) repeat-y;"><img src="/tpl/img/brd.gif" alt=""></td>
+<td>
+	<table width="100%" border="0" class="part">
+	  <tr>
+	    <td nowrap width='*'>
+
+ 		&#9642; <a href='http://6.pogoda.by/34214'>ПОГОДА НА 6 ДНЕЙ</a><br>
+ 		<span style="color:red;">&#9642;</span> <a href='/get/?q=synoptic_forecast' target='_blank' style='color:red;'>МЕТЕОПРОГНОЗ</a>
+	    </td>
+	    <td nowrap width='33%'>
+	    <span style='color:red;'>&#9642;</span> <a href='/search/' style='color:red;'>ДРУГИЕ СТРАНЫ</a><br>
+	    &#9642; <a href='/get/?q=20' target='_blank'>МЕТЕОКАРТЫ</a></td>
+	    <td nowrap width='33%'>
+	    &#9642; <a href='http://pda.pogoda.by/?city=34214'>ПОГОДА В ТЕЛЕФОН</a><br>
+     	<span style="color:red;">&#9642;</span> <a style='color:red;' href='/hchart/34214' title='МЕТЕОГРАММА'>МЕТЕОГРАММА</a></td>
+	  </tr>
+	</table>
+</td>
+</tr>
+</table>
+
+<!-- сюда прогнозик-->
+<div class="middle"><table width='100%' border='0' cellspacing='0' cellpadding='0' bgcolor='#ffffff' id='forecast'>
+<tr>
+<td id="dt" class='legend' width='245' style='border-bottom: 1px solid #ddd;'>
+<span style="color:#333; font-size: 11px; font-weight: normal;">Прогноз <a href="/about/?information=forecast" title="Численная модель UKMET 12">рассчитан автоматически</a> без контроля и корректировки специалистом.</span><br>
+</td><td style='border-bottom: 1px solid #ddd;' width='10'><img src="/tpl/img/data-main.gif" alt=""></td>
+
+
+<td width='7%' class='dat'  bgcolor="#F2F2FF">вечер, ср.<br>22 ноября</td>
+<td width='7%' class='dat'  bgcolor="#F2F2FF">ночь, чт.<br>23 ноября</td>
+<td width='7%' class='dat' >утро, чт.<br>23 ноября</td>
+<td width='7%' class='dat' >день, чт.<br>23 ноября</td>
+<td width='7%' class='dat'  bgcolor="#F2F2FF">вечер, чт.<br>23 ноября</td>
+<td width='7%' class='dat'  bgcolor="#F2F2FF">ночь, пт.<br>24 ноября</td>
+<td width='7%' class='dat' >утро, пт.<br>24 ноября</td>
+<td width='7%' class='dat' >день, пт.<br>24 ноября</td>
+<td width='7%' class='dat'  bgcolor="#F2F2FF">вечер, пт.<br>24 ноября</td>
+<td width='7%' class='dat'  bgcolor="#F2F2FF">ночь, сб.<br>25 ноября</td>
+</tr>
+<tr>
+<td class='legend'>Облачность и погодные явления</td><td>&nbsp;</td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVCn.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVCn.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVC.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVC.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVCn.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVCn.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Переменная облачность.Без осадков.' src='6/pict-40/SCT.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Переменная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Переменная облачность.Без осадков.' src='6/pict-40/SCT.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Переменная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVCn.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+ <td class='meteo'>
+ <img title='Сплошная облачность.Без осадков.' src='6/pict-40/OVCn.png' width='40' height='40' vspace='4' hspace='6' alt='Явление погоды:Сплошная облачность.Без осадков.'></td>
+</tr>
+<tr>
+<td class='legend'>Температура, °С</td><td>&nbsp;</td>
+ <td class='meteo' title='Tmax=-0.9 Tmin=-1.4'>0..-2</td>
+ <td class='meteo' title='Tmax=-1.2 Tmin=-1.5'>-1..-3</td>
+ <td class='meteo' title='Tmax=-1.6 Tmin=-2'>-1..-3</td>
+ <td class='meteo' title='Tmax=-0.1 Tmin=-0.5'>около 0</td>
+ <td class='meteo' title='Tmax=-1.4 Tmin=-1.9'>-1..-3</td>
+ <td class='meteo' title='Tmax=-2.3 Tmin=-2.7'>-2..-4</td>
+ <td class='meteo' title='Tmax=-3.1 Tmin=-3.9'>-3..-5</td>
+ <td class='meteo' title='Tmax=-2.9 Tmin=-3.2'>-2..-4</td>
+ <td class='meteo' title='Tmax=-3.3 Tmin=-3.6'>-2..-4</td>
+ <td class='meteo' title='Tmax=-3 Tmin=-3.3'>-2..-4</td>
+</tr>
+<tr>
+<td class='legend' nowrap>Скорость и направление ветра, м/с</td><td>&nbsp;</td>
+ <td class='meteo' valign='top' title='18 км/ч'> 5–7, С-З </td>
+ <td class='meteo' valign='top' title='22 км/ч'> 6–8, С-З,&nbsp;<br>порывы 11 </td>
+ <td class='meteo' valign='top' title='22 км/ч'> 6–8, Северный,&nbsp;<br>порывы 12 </td>
+ <td class='meteo' valign='top' title='22 км/ч'> 6–8, Северный,&nbsp;<br>порывы 13 </td>
+ <td class='meteo' valign='top' title='18 км/ч'> 5–7, Северный </td>
+ <td class='meteo' valign='top' title='14 км/ч'> 4–6, Северный </td>
+ <td class='meteo' valign='top' title='14 км/ч'> 4–6, С-В </td>
+ <td class='meteo' valign='top' title='4 км/ч'> 1–3, Восточный </td>
+ <td class='meteo' valign='top' title='4 км/ч'> 1–3, Западный </td>
+ <td class='meteo' valign='top' title='14 км/ч'> 4–6, Западный </td>
+</tr>
+<tr>
+<td class='legend'>Атмосферное давление,<br>приведенное уровню моря, гПа <span style='color:#888888;'> [мм рт. ст.] </span></td><td>&nbsp;</td>
+ <td class='meteo'>1013<br><span style='color:#888;'>760</span></td>
+ <td class='meteo'>1015<br><span style='color:#888;'>761</span></td>
+ <td class='meteo'>1017<br><span style='color:#888;'>763</span></td>
+ <td class='meteo'>1018<br><span style='color:#888;'>764</span></td>
+ <td class='meteo'>1020<br><span style='color:#888;'>765</span></td>
+ <td class='meteo'>1022<br><span style='color:#888;'>766</span></td>
+ <td class='meteo'>1025<br><span style='color:#888;'>768</span></td>
+ <td class='meteo'>1026<br><span style='color:#888;'>769</span></td>
+ <td class='meteo'>1028<br><span style='color:#888;'>771</span></td>
+ <td class='meteo'>1028<br><span style='color:#888;'>771</span></td>
+</tr>
+<tr>
+<td class='legend'>Влажность, %</td><td>&nbsp;</td>
+ <td class='meteo'>90</td>
+ <td class='meteo'>85</td>
+ <td class='meteo'>85</td>
+ <td class='meteo'>75</td>
+ <td class='meteo'>85</td>
+ <td class='meteo'>80</td>
+ <td class='meteo'>80</td>
+ <td class='meteo'>75</td>
+ <td class='meteo'>75</td>
+ <td class='meteo'>80</td>
+</tr>
+<tr>
+<td class='legend'>Количество осадков, мм за 6 ч </td><td>&nbsp;</td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td>
+ <td class='meteo'> — </td></tr>
+</table></div>
+<!-- место №4 100% на 60 -->
+<div class="promo">
+</div>
+<!-- конец разделителей -->
+
+<!--  разделитель. Ниже - в 3 колонки -->
+<div id="outer_wrapper">
+	<div id="wrapper">
+	   <div id="container">
+		  <div id="content">
+			<div id="left">
+
+
+<h3>Карты и графики</h3>
+<p>
+<!-- &#9642; <a title="Карта снежного покрова. Анализ" target="_blank" href="/get?q=15">Карта снежного покрова</a><br> -->
+&#9642; <a href="/mg/?city=34214">Метеограммы <strong>Белгород</strong></a><br>
+<!-- &#9642; <a title="Карта прогноза энергии неустойчивости" target="_blank" href="/get?q=17">Карта прогноза гроз</a><br>  -->
+&#9642; <a title="Карта порывов ветра. Анализ" target="_blank" href="/get/?q=wind_map">Карта порывов ветра</a><br>
+&#9642; <a title="Карта максимальной температуры воздуха. Анализ" target="_blank" href="/get?q=max_temperature">Максимальная температура</a><br>
+&#9642; <a title="Карта минимальной температуры воздуха. Анализ" target="_blank" href="/get?q=min_temperature">Минимальная температура</a><br>
+&#9642; <a title="Карта прогноза температуры воздуха 12 ч" target="_blank" href="/get?q=10">Карта прогноза температуры</a><br>
+&#9642; <a title="Карта прогноза осадков на 12 ч" target="_blank" href="/get?q=11">Карта прогноза осадков</a><br>
+&#9642; <a title="Карта относительной топографии на 12 ч" target="_blank" href="/get?q=16">Карта OT500/1000</a><br>
+&#9642; <a title="Карта прогноза скорости ветра на 12 ч" target="_blank" href="/get/?q=12">Карта прогноза скорости ветра</a><br>
+&#9642; <a title="Карта прогноза средней облачности 12 ч" target="_blank" href="/get?q=13">Карта прогноза облачности</a><br>
+&#9642; <a title="Черное, Средиземное, Балтика" href="/get?q=14" target="_blank">Температура моря</a><br>
+</p>
+<div class='lHR' style='margin:0;'>&nbsp;</div>
+<!-- место №6 300 на 240 -->
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.2/TweenMax.min.js"></script>
+<script charset="UTF-8" src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+<script charset="UTF-8" src="../promo/-6-/amazon-html5/index_240x400_pogoda.js"></script>
+
+<script>
+var canvas, stage, exportRoot, anim_container, dom_overlay_container, fnStartAnimation;
+function init() {
+	canvas = document.getElementById("canvas");
+	anim_container = document.getElementById("animation_container");
+	dom_overlay_container = document.getElementById("dom_overlay_container");
+	images = images||{};
+	var loader = new createjs.LoadQueue(false);
+	loader.addEventListener("fileload", handleFileLoad);
+	loader.addEventListener("complete", handleComplete);
+	loader.loadManifest(lib.properties.manifest);
+}
+function handleFileLoad(evt) {	
+	if (evt.item.type == "image") { images[evt.item.id] = evt.result; }	
+}
+function handleComplete(evt) {
+	var queue = evt.target;
+	var ssMetadata = lib.ssMetadata;
+	for(i=0; i<ssMetadata.length; i++) {
+		ss[ssMetadata[i].name] = new createjs.SpriteSheet( {"images": [queue.getResult(ssMetadata[i].name)], "frames": ssMetadata[i].frames} )
+	}
+	exportRoot = new lib.index_240x400_pogoda();
+	stage = new createjs.Stage(canvas);
+	stage.addChild(exportRoot);	
+	fnStartAnimation = function() {
+		createjs.Ticker.setFPS(lib.properties.fps);
+		createjs.Ticker.addEventListener("tick", stage);
+	}	    
+	function makeResponsive(isResp, respDim, isScale, scaleType) {		
+		var lastW, lastH, lastS=1;		
+		window.addEventListener('resize', resizeCanvas);		
+		resizeCanvas();		
+		function resizeCanvas() {			
+			var w = lib.properties.width, h = lib.properties.height;			
+			var iw = window.innerWidth, ih=window.innerHeight;			
+			var pRatio = window.devicePixelRatio || 1, xRatio=iw/w, yRatio=ih/h, sRatio=1;			
+			if(isResp) {                
+				if((respDim=='width'&&lastW==iw) || (respDim=='height'&&lastH==ih)) {                    
+					sRatio = lastS;                
+				}				
+				else if(!isScale) {					
+					if(iw<w || ih<h)						
+						sRatio = Math.min(xRatio, yRatio);				
+				}				
+				else if(scaleType==1) {					
+					sRatio = Math.min(xRatio, yRatio);				
+				}				
+				else if(scaleType==2) {					
+					sRatio = Math.max(xRatio, yRatio);				
+				}			
+			}			
+			canvas.width = w*pRatio*sRatio;			
+			canvas.height = h*pRatio*sRatio;
+			canvas.style.width = dom_overlay_container.style.width = anim_container.style.width =  w*sRatio+'px';				
+			canvas.style.height = anim_container.style.height = dom_overlay_container.style.height = h*sRatio+'px';
+			stage.scaleX = pRatio*sRatio;			
+			stage.scaleY = pRatio*sRatio;			
+			lastW = iw; lastH = ih; lastS = sRatio;		
+		}
+	}
+	makeResponsive(false,'both',false,1);	
+	fnStartAnimation();
+}
+</script>
+<!--
+<style>
+	#animation_container{
+		width: 240px;
+		height: 400px;
+		position: absolute;
+		top:  0;
+		left: 50%;
+	}
+</style>
+-->
+
+<body onload="init();" style="margin:0px;">
+    <a href="http://www.202.by/katalog/" target="_blank">
+        <div id="animation_container" style="background-color:rgba(255, 255, 255, 1.00); width:240px; height:400px; margin:0px 2px;">
+        <canvas id="canvas" width="240" height="400" style="position: absolute; display: block; background-color:rgba(255, 255, 255, 1.00);"></canvas>
+        <div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:240px; height:400px; position: absolute; left: 0px; top: 0px; display: block;"></div>
+       </div>
+    </a>
+</body><div class='lHR' style='margin:-9px 0 6px 0;'>&nbsp;</div>
+<!-- сеноптеги только для РБ-->
+
+<!-- меню карты -->
+<!-- Озон -->
+&nbsp;
+<h3>Сайты-партнёры</h3>
+<p><a href='/get/?q=4' title='' target='_blank'><img src='tpl/ico/president_88x37.gif' width='88' height='37' border='0' alt=''></a></p>
+<p><a href='/get/?q=8' title='MEЖГОСУДАРСТВЕННЫЙ СОВЕТ ПО ГИДРОМЕТЕОРОЛОГИИ СНГ' target='_blank'><img src='tpl/ico/msg_sng_90x16.gif' width='90' height='16' border='0' alt='МСГ СНГ'></a> &nbsp;
+<a href='/get/?q=5' title='rad.org.by' target='_blank'><img src='tpl/ico/logo-mini-rcrkm.png' width='90' height='16' border='1' alt='rad.org.by'></a>&nbsp;
+</p>
+
+<!-- пс //-->
+<div class='lHR' style='margin:0;'>&nbsp;</div>
+<div style="margin-top:250px; background: #ffffff url(/tpl/img/bg-div-l.gif);">
+</div>
+
+</div>
+
+<!-- СРЕДНЯЯ КОЛОНКА -->
+<div id="main">
+<!-- шторма -->
+
+	<script  type="text/javascript">
+	<!--
+	function switch_TS_or_WS_More(){
+	with (document.getElementById('TS_or_WS_More'))	{
+	style.display = (style.display != 'none') ? 'none' : '';
+	document.getElementById('TS_or_WS_Sign').innerHTML = (style.display == 'none') ? '<acronym title="Показать +">Неблагоприятные явления погоды</acronym>' : '<acronym title="Убрать -">Неблагоприятные явления погоды</acronym>';
+	}
+	}
+	// -->
+	</script>
+
+	<h3>Плохая погода</h3>
+	<p><b><a href="javascript:switch_TS_or_WS_More();" id="TS_or_WS_Sign" style="cursor: pointer;"><acronym title="Показать все">Неблагоприятные явления погоды</a></acronym></b>:
+	<strong>Нида</strong>, <strong>Добеле</strong>, <strong>Добеле</strong>, <strong>Добеле</strong>...</p>
+<div id='TS_or_WS_More' style='display:none; text-align:left;'>
+<p><b>22.11</b> 15:56 <a href='/?city=%CD%E8%E4%E0'>Нида</a>. Ветер Ю-В, 10 м/с, порыв 12 м/с.</p>
+<p><b>22.11</b> 11:15 <a href='/?city=%C4%EE%E1%E5%EB%E5'>Добеле</a>. Сплошная облачность. Форма облаков: слоистые [St]. Высота нижней границы облаков 240 м.</p>
+<p><b>22.11</b> 07:40 <a href='/?city=%C4%EE%E1%E5%EB%E5'>Добеле</a>. Изморозь. 1 мм. Температура: -2°С.</p>
+<p><b>22.11</b> 07:40 <a href='/?city=%C4%EE%E1%E5%EB%E5'>Добеле</a>. Гололед. 1 мм. Температура: -2°С.</p>
+<p><b>22.11</b> 05:56 <a href='/?city=%CF%EE%EB%EE%F6%EA'>Полоцк</a>. Сплошная облачность. Форма облаков: слоистые [St]. Высота нижней границы облаков 60 м. Налипание мокрого снега. 7 мм. Температура: -1°С. Гололедица. Температура: -1°С.</p>
+		</div>
+	<div>&nbsp;</div>
+<!-- №8 100% 80/240-->
+
+<h3>Метеоновости</h3>
+
+
+<!-- news #31630-->
+<h4>22.11. 23 ноября погоду будет в основном определять область повышенного атмосферного давления</h4>
+
+<p class='news'>23 ноября погодные условия на территории Беларуси будет в основном определять область повышенного атмосферного давления, утром и днем по западу республики скажется&nbsp;<a href = '../news/?page=31630' title='«23 ноября погоду будет в основном определять область повышенного атмосферного давления»'>влияние малоактивного фронтального раздела.&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31629-->
+<h4>22.11. Кущение озимых зерновых культур отмечено на больших площадях, чем осенью прошлого года</h4>
+
+<p class='news'>В ноябре агрометеорологические условия для озимых культур складывались удовлетворительно. Под влиянием теплой для этого времени погоды озимые культуры не смогли обрести состояния&nbsp;<a href = '../news/?page=31629' title='«Кущение озимых зерновых культур отмечено на больших площадях, чем осенью прошлого года»'>покоя, у них продолжалась&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31628-->
+<h4>22.11. В Орше прошедшей ночью температура воздуха понизилась до -7°</h4>
+
+<p class='news'>В истекшие сутки преобладала облачная погода. Днем во многих районах, ночью преимущественно по северной половине республики прошли небольшие осадки в виде дождя и мокрого снега,&nbsp;<a href = '../news/?page=31628' title='«В Орше прошедшей ночью температура воздуха понизилась до -7°»'>ночью местами по Витебской&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31627-->
+<h4>22.11. Прогноз погоды по Беларуси на день 22 ноября</h4>
+
+<p class='news'>Облачно с прояснениями. Без существенных осадков, лишь по Брестской области в отдельных районах небольшие осадки (мокрый снег, дождь). Слабые туман и гололед, на отдельных&nbsp;<a href = '../news/?page=31627' title='«Прогноз погоды по Беларуси на день 22 ноября»'>участках дорог гололедица. Ветер&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31626-->
+<h4>21.11. Погоду будет определять воздушная масса, поступающая с Балтийского моря</h4>
+
+<p class='news'>22 ноября погодные условия на территории Беларуси будет определять влажная воздушная масса, поступающая с Балтийского моря. Ожидается облачно с прояснениями. В отдельных&nbsp;<a href = '../news/?page=31626' title='«Погоду будет определять воздушная масса, поступающая с Балтийского моря»'>районах небольшие осадки (мокрый&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31625-->
+<h4>21.11. В отдельных районах страны образовался снежный покров</h4>
+
+<p class='news'>В истекшие сутки преобладала облачная погода Днем преимущественно по западной половине, ночью во многих районах страны прошли осадки в виде мокрого снега и дождя. В ночные часы&nbsp;<a href = '../news/?page=31625' title='«В отдельных районах страны образовался снежный покров»'>в отдельных районах Витебской&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31624-->
+<h4>21.11. Прогноз погоды по Беларуси на день 21 ноября</h4>
+
+<p class='news'>Облачная с прояснениями погода. Во многих районах пройдут небольшие осадки (мокрый снег, дождь). В утренние часы местами туман, слабый гололед, на отдельных участках дорог&nbsp;<a href = '../news/?page=31624' title='«Прогноз погоды по Беларуси на день 21 ноября»'>гололедица. Ветер западный слабый&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31623-->
+<h4>20.11. В ближайшие дни на реках будут наблюдаться колебания уровней воды</h4>
+
+<p class='news'>В настоящее время рост уровней воды с интенсивностью 1-16 см за сутки наблюдается на большем протяжении Западной Двины,&nbsp;<a href = '../news/?page=31623' title='«В ближайшие дни на реках будут наблюдаться колебания уровней воды»'>Березины, Сожа и&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31622-->
+<h4>20.11. Завтра во многих районах ожидаются небольшие осадки, в основном мокрый снег</h4>
+
+<p class='news'>21 ноября погодные условия на территории Беларуси будет определять область пониженного атмосферного давления, сформированная во влажной неустойчивой воздушной массе.&nbsp;<a href = '../news/?page=31622' title='«Завтра во многих районах ожидаются небольшие осадки, в основном мокрый снег»'>Ожидается облачно с прояснениями.&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+
+<!-- news #31621-->
+<h4>20.11. В истекший период наблюдалась теплая погода</h4>
+
+<p class='news'>В истекший период наблюдалась теплая погода со среднесуточной температурой воздуха 0..+5°С, что в основном на 1-4°С выше климатической нормы. Максимальная температура в дневные&nbsp;<a href = '../news/?page=31621' title='«В истекший период наблюдалась теплая погода»'>часы была +1..+6°С, минимальная&nbsp;<span style='font: normal 13px Arial;'>&rarr;</span></a></p>
+<div class="HR" align="right">&nbsp;<a href="/news/">&#8594; АРХИВ НОВОСТЕЙ</a>&nbsp;</div>
+
+<h3>Метеограмма</h3>
+<p style='float:left; margin:2px;'><img src='/mg/366/egrr_T34214.gif' width='366' height='100' border='1' title='метеограмма Белгород' alt='метеограмма Белгород'>
+<br>График прогноза погоды</p>
+<div style='clear:both;'>&nbsp;</div><div class='HR' align='right'>&nbsp;<a href='/mg/?city=34214' target='_blank' title='метеограммы'>&#8594;&nbsp;МЕТЕОГРАММЫ</a>&nbsp;</div></div>
+</div>
+</div>
+
+
+<!-- ПРАВАЯ КОЛОНКА 380-->
+<div id="sidebar">
+<h3>Статьи и публикации</h3>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 27.09.'> <a href='/press-release/?page=554' title='«Агрометеорологический  бюллетень ...». Добавлено 27.09.'>Агрометеорологический  бюллетень</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 20.09.'> <a href='/press-release/?page=552' title='«Гидрометеорологические условия в Беларуси...». Добавлено 20.09.'>Гидрометеорологические условия в Беларуси в августе 2017 г</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 12.09.'> <a href='/press-release/?page=551' title='«Климатические характеристики сентября ...». Добавлено 12.09.'>Климатические характеристики сентября</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 06.09.'> <a href='/press-release/?page=550' title='«О радиационной обстановке на...». Добавлено 06.09.'>О радиационной обстановке на территории Республики Беларусь летом 2017 года</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 15.08.'> <a href='/press-release/?page=548' title='«Июль 2017 года был...». Добавлено 15.08.'>Июль 2017 года был на 1-2° холоднее климатической нормы</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 07.07.'> <a href='/press-release/?page=545' title='«Июнь 2017 года в...». Добавлено 07.07.'>Июнь 2017 года в Беларуси</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 14.06.'> <a href='/press-release/?page=543' title='«Май 2017 года характеризовался...». Добавлено 14.06.'>Май 2017 года характеризовался неустойчивым температурным режимом и дефицитом осадков</a></p>
+<p><img src='/tpl/img/page.gif' border='0' hspace='2' alt='добавлено 10.05.'> <a href='/press-release/?page=542' title='«В апреле в Беларуси...». Добавлено 10.05.'>В апреле в Беларуси преобладал пониженный температурный режим</a></p>
+<div id="press" class="HR" align="right">&nbsp;<a href="/press-release/">&#8594; АРХИВ ПУБЛИКАЦИЙ</a>&nbsp;</div>
+
+<!-- место №5 -->
+<div style="margin:2px 0 0 2px;">
+</div>
+<!-- конец разделителей -->
+
+
+<h3>Температура морской воды</h3>
+<p>Самое холодное сегодня — Азовское море.<br>Температура воды 8°C в г. <a href="/34727" title="Россия">Ейск</a>.</p><p>Самое теплое — Красное море.<br>Температура воды 26.5°C — <a href="/62466" title="Египет">Макади Бей</a>, Египет.</p><div class="HR" align="right">&nbsp;<a href="/gidro/">&#8594; ВСЕ КУРОРТЫ</a>&nbsp;</div>
+
+
+
+
+
+<h3>Почитать</h3>
+<div><p>22.11.&nbsp;<a href="/rss-fwlink/?4659" target='_blank'>Макаки умеют чистить зубы</a></p>
+<p>22.11.&nbsp;<a href="/rss-fwlink/?4655" target='_blank'>Непогода на юге России</a></p>
+<p>22.11.&nbsp;<a href="/rss-fwlink/?4645" target='_blank'>Штормовой циклон кружит над севером Европы</a></p>
+<p>22.11.&nbsp;<a href="/rss-fwlink/?4644" target='_blank'>Самый сильный осенний дождь в Крыму</a></p>
+<h3>Информация МЧС Беларуси</h3>
+<p>22.11.&nbsp;<a href="/rss-fwlink/?4663" target='_blank'>Руководители МЧС и ОНТ провели совместный единый день информирования в Лицее МЧС</a></p>
+<p>22.11.&nbsp;<a href="/rss-fwlink/?4657" target='_blank'>Владимир Ващенко встретился с работниками и курсантами Гомельского филиала Университета гражданской защиты МЧС</a></p>
+<p><strong>Оперативная сводка</strong></p>
+<p>22.11.&nbsp;<a href="/rss-fwlink/?4626" target='_blank'>Информация о чрезвычайных ситуациях №326 с 06-00 часов 21 ноября 2017 г. до 06-00 часов 22 ноября 2017 г.</a></p>
+<p>21.11.&nbsp;<a href="/rss-fwlink/?4577" target='_blank'>Информация о чрезвычайных ситуациях №325 с 06-00 часов 20 ноября 2017 г. до 06-00 часов 21 ноября 2017 г.</a></p>
+</div>
+<div class='lHR' style='margin:0;'>&nbsp;</div>
+
+
+<!-- RSS -->
+<h3>Экспорт погоды</h3>
+<p>
+<a href='/rss2/rss.php' title='Метеопрогноз по Беларуси'><img src='tpl/ico/feed-small.gif' width='16' height='16' border='0' alt='rss-лента'>Метеопрогноз по Беларуси</a><br>
+<a href='/rss2/storm.php' title='Штормовые предупреждения'><img src='tpl/ico/feed-small.gif' width='16' height='16' border='0' alt='rss-лента'>Штормовые предупреждения</a><br>
+<a href='/rss2/hydro.php' title='Гидрологическая обстановка по Беларуси'><img src='tpl/ico/feed-small.gif' width='16' height='16' border='0' alt='rss-лента'>Гидрологическая обстановка</a><br>
+<a href='/rss2/rss_pogoda.by.php' title='Метеоновости POGODA.BY'><img src='tpl/ico/feed-small.gif' width='16' height='16' border='0' alt='rss-лента'>Метеоновости POGODA.BY</a>
+</p><div class='lHR' style='margin:0;'>&nbsp;</div>
+
+
+<!--баннеры //-->
+<div style="margin-top:50px; background: #ffffff url(/tpl/img/bg-div-l.gif);">
+</div>
+
+			</div>
+		<div class="clearing">&nbsp;</div>
+	</div>
+</div>
+<div id="footer"><a href='mailTo:master@pogoda.by' title='Электропочта'><img src='/img2/post.gif' width='16' height='11' border='0' alt='написать POGODA.BY'></a>&nbsp;<a href='/'>POGODA.BY</a>&nbsp;© 2001-2017<noindex>
+<!--LiveInternet counter-->
+<script type="text/javascript">
+<!--
+document.write('<a href="http://www.liveinternet.ru/click" '+
+'target=_blank><img src="http://counter.yadro.ru/hit?t26.11;r'+
+escape(document.referrer)+((typeof(screen)=='undefined')?'':
+';s'+screen.width+'*'+screen.height+'*'+(screen.colorDepth?
+screen.colorDepth:screen.pixelDepth))+';u'+escape(document.URL)+
+';'+Math.random()+
+'" alt="" title="LiveInternet:" '+
+'border=0 width=88 height=15><\/a>')//-->
+</script>
+<!--/LiveInternet-->
+</noindex></div>
+</div>
+</body>
+</html>

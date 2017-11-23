@@ -1,0 +1,24 @@
+
+<big>Модуль совместимости с RM-Brige</big>
+
+<ul class="nav nav-tabs">
+ <li [#if VIEW_MODE==""#]class="active"[#endif#]><a href="?view_mode=">Добавить код</a></li>
+ <li [#if VIEW_MODE=="manage_codes"#]class="active"[#endif#]><a href="?view_mode=manage_codes">Существующие коды</a></li>
+ <li [#if VIEW_MODE=="import"#]class="active"[#endif#]><a href="?view_mode=import">Импорт</a></li>
+ <li [#if VIEW_MODE=="export"#]class="active"[#endif#]><a href="?view_mode=export">Экспорт</a></li>
+</ul><br>
+[#if VIEW_MODE=""#]
+	[#inc code_learning.html#]
+[#endif VIEW_MODE#]
+
+[#if VIEW_MODE="manage_codes"#]
+	[#inc manage_codes.html#]
+[#endif VIEW_MODE#]
+
+[#if VIEW_MODE="import"#]
+	[#inc import_codes.html#]
+[#endif VIEW_MODE#]
+
+[#if VIEW_MODE="export"#]
+	[#inc export_codes.html#]
+[#endif VIEW_MODE#]

@@ -1,0 +1,17 @@
+<!--#
+ @version 0.1 (auto-set)
+#-->
+
+[#if ACTION=""#]
+<!-- Frontend -->
+ [#if MAPPROVIDER="google"#]	
+	[#inc action_usual_google.html#]
+ [#endif#]
+ [#if MAPPROVIDER="yandex"#]	
+	[#inc action_usual_yandex.html#]
+ [#endif#]
+[#endif#]
+[#if ACTION="admin"#]
+<!-- Control Panel -->
+ [#inc action_admin.html#]
+[#endif#]

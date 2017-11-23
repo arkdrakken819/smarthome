@@ -1,0 +1,102 @@
+
+<!-- Table 'noodevices' edit -->
+<form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
+[#if MESSAGE!=""#]
+<div class="alert alert-success">[#MESSAGE#]</div>
+[#endif MESSAGE#]
+[#if OK#]
+<div class="alert alert-success"><#LANG_DATA_SAVED#></div>
+[#endif OK#]
+[#if ERR#]
+<div class="alert alert-error"><#LANG_FILLOUT_REQURED#></div>
+[#endif ERR#]
+<fieldset>
+[#if ID=""#]
+<legend><#LANG_NEW_RECORD#></legend>
+[#endif ID#]
+<!-- TITLE (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_TITLE#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_TITLE#>:
+ (*)
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="title" value="[#TITLE#]" id="title"></div>
+</div>
+
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_DESCRIPTION#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_DESCRIPTION#>:
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="description" value="[#DESCRIPTION#]" id="title"></div>
+</div>
+
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_ADDRESS#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_CHANNEL#>:
+ </label>
+ <div class="col-lg-4">
+ <input type="text" class="form-control" name="address" value="[#ADDRESS#]" id="address">
+ [#if ID!=""#]
+ [#if DEVICE_TYPE=="power" || DEVICE_TYPE=="power_f" || DEVICE_TYPE=="power_dimmer" || DEVICE_TYPE=="power_dimmer_f" || DEVICE_TYPE=="power_rgb"#]
+ <br/>
+ <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=bind" class="btn btn-default">Bind</a>
+ <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=unbind" class="btn btn-default">Un-bind</a>
+ [#endif#]
+
+ [#if DEVICE_TYPE=="" && API_TYPE="linux"#]
+ <br/>
+ <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=start_binding" class="btn btn-default">Start binding</a>
+ <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=stop_binding" class="btn btn-default">Stop binding</a>
+ [#endif#]
+
+ [#endif ID#]
+
+ </div>
+</div>
+
+<!-- DEVICE_TYPE (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_DEVICE_TYPE#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_TYPE#>:
+ </label>
+ <div class="col-lg-4">
+  <select name="device_type" class="form-control">
+   <option value="">Sensor
+   <option value="power"[#if DEVICE_TYPE=="power"#] selected[#endif#]>Power Unit (Switch)
+   <option value="power_dimmer"[#if DEVICE_TYPE=="power_dimmer"#] selected[#endif#]>Power Unit (Dimmer)
+   <option value="power_rgb"[#if DEVICE_TYPE=="power_rgb"#] selected[#endif#]>Power Unit (RGB-controller)
+   <option value="power_f"[#if DEVICE_TYPE=="power_f"#] selected[#endif#]>Power Unit (Switch, nooLite-F)
+   <option value="power_dimmer_f"[#if DEVICE_TYPE=="power_dimmer_f"#] selected[#endif#]>Power Unit (Dimmer, nooLite-F)
+  </select>
+ </div>
+</div>
+
+ <div class="form-group ">
+  <label class="col-lg-4 control-label"><#LANG_LOCATION#>: <#LANG_HCB#>location<#LANG_HCE#></label>
+  <div class="col-lg-4"><select name="location_id" class="form-control">
+   <option value="">-
+    [#begin LOCATIONS#]<option value="[#ID#]"[#if ID="<#LOCATION_ID#>"#] selected[#endif#]>[#TITLE#]
+   [#end LOCATIONS#]
+  </select></div>
+ </div>
+
+<div class="form-group">
+        <div class="col-lg-offset-3 col-lg-4">
+ [#if ID!=""#]
+ <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_SUBMIT#></button>
+ [#else ID#]
+ <button type="submit" name="subm" value="Add" class="btn btn-primary"><#LANG_ADD#></button>
+ [#endif ID#]
+ <a href="?data_source=<#DATA_SOURCE#>" class="btn btn-default "><#LANG_CANCEL#></a>
+
+
+<input type="hidden" name="id" value="<#ID#>">
+<input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
+<input type="hidden" name="edit_mode" value="<#EDIT_MODE#>">
+<input type="hidden" name="mode" value="update">
+<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
+<input type="hidden" name="tab" value="<#TAB#>">
+        </div>
+</div>
+</fieldset>
+</form>

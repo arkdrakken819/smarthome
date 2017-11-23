@@ -1,0 +1,125 @@
+
+<!-- Table 'dev_httpbrige_devices' edit -->
+<form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
+[#if MESSAGE!=""#]
+<div class="alert alert-info">[#MESSAGE#]</div>
+[#endif MESSAGE#]
+[#if OK#]
+<div class="alert alert-success"><#LANG_DATA_SAVED#></div>
+[#endif OK#]
+[#if ERR#]
+<div class="alert alert-error"><#LANG_FILLOUT_REQURED#></div>
+[#endif ERR#]
+<fieldset>
+[#if ID=""#]
+<legend><#LANG_NEW_RECORD#></legend>
+[#endif ID#]
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_TYPE#] style="color:red;font-weight:bold"[#endif#]>
+	Тип устройства:
+ </label>
+ <div class="col-lg-4">
+	 <select class="form-control" name="type">
+	   <option value="">Выберите устройство
+	   <option value="rm"[#if TYPE=="rm"#] selected[#endif#]>RM(1,2,Pro)
+	   <option value="rm3"[#if TYPE=="rm3"#] selected[#endif#]>RM3 mini 
+	   <option value="a1"[#if TYPE=="a1"#] selected[#endif#]>A1 e-Air
+	   <option value="sp2"[#if TYPE=="sp2"#] selected[#endif#]>SP2
+	   <option value="spmini"[#if TYPE=="spmini"#] selected[#endif#]>SP mini/MP2
+	   <option value="sp3"[#if TYPE=="sp3"#] selected[#endif#]>SP3 (SP CC)
+	   <option value="sp3s"[#if TYPE=="sp3s"#] selected[#endif#]>SP3S
+	   <option value="mp1"[#if TYPE=="mp1"#] selected[#endif#]>MP1
+	   <option value="ms1"[#if TYPE=="ms1"#] selected[#endif#]>Колонка MS1 
+	   <option value="sc1"[#if TYPE=="sc1"#] selected[#endif#]>Выключатель SC1
+	   <option value="s1"[#if TYPE=="s1"#] selected[#endif#]>S1/S1c
+	   <option value="dooya"[#if TYPE=="dooya"#] selected[#endif#]>Карнизы Dooya
+	 </select>
+ </div>
+</div>
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_TITLE#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_TITLE#>:
+ (*)
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="title" value="[#TITLE#]" id="title"></div>
+</div>
+
+<!-- IP (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_IP#] style="color:red;font-weight:bold"[#endif#]>
+ IP устройства:
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="ip" value="[#IP#]" id="ip"></div>
+</div>
+
+<!-- DEVTYPE (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_DEVTYPE#] style="color:red;font-weight:bold"[#endif#]>
+ Марка устройства:
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="devtype" value="[#DEVTYPE#]" id="devtype"></div>
+</div>
+
+<!-- MAC (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_MAC#] style="color:red;font-weight:bold"[#endif#]>
+ MAC:
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="mac" value="[#MAC#]" id="mac"></div>
+</div>
+[#if TYPE=="rm" || TYPE=="rm3"#]
+<div class="form-group">
+ <label class="col-lg-3 control-label">
+Управление:
+ </label>
+ <div class="col-lg-4">
+	<a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=learn" class="btn btn-default">Обучить коду</a>
+	<a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab=data_usage" class="btn btn-default">Использование команд</a>
+ </div>
+</div>
+[#endif#]
+
+<div class="form-group">
+ <label class="col-lg-3 control-label">
+Обновлять каждые:
+ </label>
+ <div class="col-lg-4">
+	<div class="btn-group">
+	  <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=set_time&time=none" class="btn [#if CHTIME="none"#]btn-primary [#else#]btn-default [#endif#]">None</a>
+	  <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=set_time&time=5s" class="btn [#if CHTIME="5s"#]btn-primary [#else#]btn-default [#endif#]">5s</a>
+	  <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=set_time&time=20s" class="btn [#if CHTIME="20s"#]btn-primary [#else#]btn-default [#endif#]">20s</a>
+	  <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=set_time&time=1m" class="btn [#if CHTIME="1m"#]btn-primary [#else#]btn-default [#endif#]">1m</a>
+	  <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=set_time&time=10m" class="btn [#if CHTIME="10m"#]btn-primary [#else#]btn-default [#endif#]">10m</a>
+	  <a href="?data_source=<#DATA_SOURCE#>&id=<#ID#>&view_mode=<#VIEW_MODE#>&mode=set_time&time=1h" class="btn [#if CHTIME="1h"#]btn-primary [#else#]btn-default [#endif#]">1h</a>
+	</div>
+ </div>
+</div>
+
+<!-- UPDATED (datetime) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_UPDATED#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_UPDATED#>:
+ </label>
+ <div class="col-lg-4">
+<input class="form-control" id="disabledInput" type="text" placeholder="[#UPDATED#]" disabled>
+ </div>
+</div>
+[#module name="linkedobject" object_field="linked_object"#]
+<div class="form-group">
+        <div class="col-lg-offset-3 col-lg-4">
+ [#if ID!=""#]
+ <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_SUBMIT#></button>
+ [#else ID#]
+ <button type="submit" name="subm" value="Add" class="btn btn-primary"><#LANG_ADD#></button>
+ [#endif ID#]
+ <a href="?data_source=<#DATA_SOURCE#>" class="btn btn-default "><#LANG_CANCEL#></a>
+<input type="hidden" name="id" value="<#ID#>">
+<input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
+<input type="hidden" name="edit_mode" value="<#EDIT_MODE#>">
+<input type="hidden" name="mode" value="update">
+<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
+<input type="hidden" name="tab" value="<#TAB#>">
+</div>
+</div>
+</fieldset>
+</form>

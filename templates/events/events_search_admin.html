@@ -1,0 +1,82 @@
+<h2><#LANG_MODULE_EVENTS#></h2>
+<pre>
+Code example:
+registerEvent('path/to/event'[,array('param1'=>'value1')]);
+API example:
+/api/events/path/to/event?param1=value1
+</pre>
+
+<script type="text/javascript">
+ var updateTimer = 0;
+ function updateRecentEvents() {
+  var url = "/ajax/events.html?getlatest=1";
+  $.ajax({
+   url: url
+  }).done(function(data) {
+   $('#recentEvents').html(data);
+   updateTimer = setTimeout('updateRecentEvents();',1000);
+  });
+ }
+ updateTimer = setTimeout('updateRecentEvents();',2000);
+</script>
+
+<div id="recentEvents">...</div>
+
+[#if ITEMS#]
+<ul>
+ [#begin ITEMS#]
+ <li>
+  [#if ID!=""#]
+  <a href="?view_mode=edit_events&id=[#ID#]">[#TITLE#]</a> ([#ADDED#])
+  [#if DESCRIPTION!=""#]<i>[#DESCRIPTION#]</i>[#endif#]
+
+  [#else#][#TITLE#][#endif#]
+
+  [#if ITEMS#]<ul>[#tree ITEMS#]</ul>[#endif ITEMS#]
+ </li>
+ [#end ITEMS#]
+</ul>
+[#endif ITEMS#]
+<!--#
+[#if RESULT#]
+<form action="?" method="post" name="frmList_events" style="padding:0px">
+<table class="table">
+[#begin RESULT#]
+<tr>
+ <td>
+   [#EVENT_NAME#]
+ </td>
+ <td>
+  [#if DETAILS!=""#]
+   [#DETAILS#]
+  [#else#]
+   &nbsp;
+  [#endif#]
+ </td>
+ <td>
+  [#if ADDED!=""#]
+   [#ADDED#]
+  [#else#]
+   &nbsp;
+  [#endif#]
+ </td>
+ <td>
+  [#if "<#ACTION#>"=="admin"#]
+    <b><a href="?view_mode=edit_events&id=[#ID#]" class="btn btn-default"><#LANG_EDIT#></a></b>
+    <a href="?view_mode=delete_events&id=[#ID#]" onClick="return confirm('Delete record?')" class="btn btn-default"><#LANG_DELETE#></a>
+  [#endif ACTION#]
+ </td>
+</tr>
+[#end RESULT#]
+</table>
+<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
+<input type="hidden" name="view_mode" value="multiple_events">
+</form>
+[#else RESULT#]
+<p align=center>
+<font color="red"><#LANG_NO_RECORDS_FOUND#></font>
+</p>
+[#endif RESULT#]
+#-->
+
+

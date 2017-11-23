@@ -1,0 +1,68 @@
+
+ <!-- action usual -->
+ [#if DATA_SOURCE="dev_httpbrige_devices" || DATA_SOURCE=""#]
+ <!-- table dev_httpbrige_devices search -->
+ [#if VIEW_MODE="search_dev_httpbrige_devices" || VIEW_MODE=""#]
+  [#inc dev_httpbrige_devices_search_admin.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table dev_httpbrige_devices search -->
+ <!-- table dev_httpbrige_devices edit -->
+ [#if VIEW_MODE="edit_dev_httpbrige_devices"#]
+   [#if ID!=""#]
+   [#if TITLE!=""#]<h4>[#TITLE#]</h4>[#endif TITLE#]
+<ul class="nav nav-tabs">
+  <li[#if TAB=""#] class="active"[#endif#]>
+   <a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab="><#LANG_GENERAL#></a>
+  </li>
+  <li[#if TAB="data"#] class="active"[#endif#]>
+   <a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab=data">&#060#LANG_DATA#&#062</a>
+  </li>
+  [#if TYPE=="rm" || TYPE=="rm3"#]<li><a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab=data&sort_by_name=0"><i class="glyphicon glyphicon-sort-by-attributes"></i></a></li>
+  <li><a href="?data_source=<#DATA_SOURCE#>&view_mode=<#VIEW_MODE#>&id=<#ID#>&tab=data&sort_by_name=1"><i class="glyphicon glyphicon-sort-by-alphabet"></i></a></li>[#endif#]
+</ul>
+&nbsp;<br/>
+   [#endif ID#]
+   [#if TAB=""#]
+    [#inc dev_httpbrige_devices_edit_default.html#]
+   [#endif TAB#]
+   [#if TAB="data"#]
+    [#inc dev_httpbrige_devices_edit_data.html#]
+   [#endif TAB#]
+   [#if TAB="data_export" || TAB="data_import" #]
+    [#inc dev_httpbrige_devices_export_data.html#]
+   [#endif TAB#]
+   [#if TAB="data_usage"#]
+    [#inc dev_httpbrige_devices_edit_data_usage.html#]
+   [#endif TAB#]
+ [#endif VIEW_MODE#]
+ <!-- / table dev_httpbrige_devices edit -->
+ <!-- table dev_httpbrige_devices view --> 
+ [#if VIEW_MODE="view_dev_httpbrige_devices"#]
+   [#if TAB=""#]
+    [#inc dev_httpbrige_devices_view_default.html#]
+   [#endif TAB#]
+ [#endif VIEW_MODE#]
+ <!-- / table dev_httpbrige_devices view -->
+ [#endif DATA_SOURCE#]
+ <!-- action usual -->
+ [#if DATA_SOURCE="dev_broadlink_commands"#]
+ <!-- table dev_broadlink_commands search -->
+ [#if VIEW_MODE="search_dev_broadlink_commands" || VIEW_MODE=""#]
+  [#inc dev_broadlink_commands_search_admin.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table dev_broadlink_commands search -->
+ <!-- table dev_broadlink_commands edit -->
+ [#if VIEW_MODE="edit_dev_broadlink_commands"#]
+   [#inc dev_broadlink_commands_edit.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table dev_broadlink_commands edit -->
+ <!-- table dev_broadlink_commands view --> 
+ [#if VIEW_MODE="view_dev_broadlink_commands"#]
+   [#inc dev_broadlink_commands_view.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table dev_broadlink_commands view -->
+ [#endif DATA_SOURCE#]
+ 
+ [#if VIEW_MODE="broadlink_devices_scan"#]
+   [#inc broadlink_devices_scan.html#]
+ [#endif VIEW_MODE#]

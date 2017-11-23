@@ -1,0 +1,100 @@
+
+<!-- Table 'megaddevices' edit -->
+<form action="?" method="post" enctype="multipart/form-data" name="frmEdit" class="form-horizontal">
+[#if OK#]
+<div class="alert alert-success">Data has been saved</div>
+[#endif OK#]
+[#if ERR#]
+<div class="alert alert-error">Please fill out all required fields</div>
+[#endif ERR#]
+<fieldset>
+[#if ID=""#]
+<legend><#LANG_NEW_RECORD#></legend>
+[#endif ID#]
+<!-- TITLE (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_TITLE#] style="color:red;font-weight:bold"[#endif#]>
+ <#LANG_TITLE#>:
+ (*)
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="title" value="[#TITLE#]" ></div>
+</div>
+
+ <div class="form-group">
+  <label class="col-lg-3 control-label">
+   <#LANG_TYPE#> (контроллер):
+  </label>
+  <div class="col-lg-4">
+   <select name="type_main" class="form-control">
+    <option value="328"[#if TYPE_MAIN="328"#] selected[#endif#]>MegaD-328</option>
+    <option value="2561"[#if TYPE_MAIN="2561"#] selected[#endif#]>MegaD-2561</option>
+   </select>
+  </div>
+ </div>
+
+ <div class="form-group">
+  <label class="col-lg-3 control-label">
+   <#LANG_TYPE#> (периферия):
+  </label>
+  <div class="col-lg-4">
+   <select name="type" class="form-control">
+    <option value=""></option>
+    <option value="7I7O"[#if TYPE="7I7O"#] selected[#endif#]>MegaD-7I7O-R</option>
+    <option value="14IN"[#if TYPE="14IN"#] selected[#endif#]>MegaD-14-IN</option>
+    <option value="14R"[#if TYPE="14R"#] selected[#endif#]>MegaD-14-R</option>
+    <option value="7I7Ox2"[#if TYPE="7I7Ox2"#] selected[#endif#]>MegaD-7I7O-R x 2</option>
+    <option value="14INx2"[#if TYPE="14INx2"#] selected[#endif#]>MegaD-14-IN x 2</option>
+    <option value="14Rx2"[#if TYPE="14Rx2"#] selected[#endif#]>MegaD-14-R x 2</option>
+   </select>
+  </div>
+ </div>
+
+<div class="form-group">
+ <label class="col-lg-3 control-label">
+ Megad-ID:
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="mdid" value="[#MDID#]" ></div>
+</div>
+
+
+<!-- IP (varchar) -->
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_IP#] style="color:red;font-weight:bold"[#endif#]>
+ IP (*):
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="ip" value="[#IP#]" ></div>
+</div>
+
+<div class="form-group">
+ <label class="col-lg-3 control-label"[#if ERR_PASSWORD#] style="color:red;font-weight:bold"[#endif#]>
+ PASSWORD ("sec" by default):
+ </label>
+ <div class="col-lg-4"><input type="text" class="form-control" name="password" value="[#PASSWORD#]" ></div>
+</div>
+
+ <div class="form-group">
+  <label class="col-lg-3 control-label">
+   <#LANG_POLLING_PERIOD#>, <#LANG_SECONDS#>:
+  </label>
+  <div class="col-lg-4"><input type="text" class="form-control" name="update_period" value="[#UPDATE_PERIOD#]" ></div>
+ </div>
+
+
+<div class="form-group">
+        <div class="col-lg-offset-3 col-lg-4">
+ [#if ID!=""#]
+ <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_SUBMIT#></button>
+ [#else ID#]
+ <button type="submit" name="subm" value="Add" class="btn btn-primary"><#LANG_ADD#></button>
+ [#endif ID#]
+ <a href="?data_source=<#DATA_SOURCE#>" class="btn btn-default "><#LANG_CANCEL#></a>
+<input type="hidden" name="id" value="<#ID#>">
+<input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
+<input type="hidden" name="edit_mode" value="<#EDIT_MODE#>">
+<input type="hidden" name="mode" value="update">
+<input type="hidden" name="data_source" value="<#DATA_SOURCE#>">
+<input type="hidden" name="tab" value="<#TAB#>">
+        </div>
+</div>
+</fieldset>
+</form>
